@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 // https://docs.onflow.org/fcl/reference/api/#transaction-statuses
 /**
@@ -43,7 +43,7 @@ export default function TransactionProvider({ children }: IProps) {
   console.log("TransactionProvider", value);
 
   return (
-    <TransactionContext.Provider value={value}>
+    <TransactionContext.Provider value={value as any}>
       {children}
     </TransactionContext.Provider>
   );

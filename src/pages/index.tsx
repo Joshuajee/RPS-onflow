@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Layout from '@/components/ui/utils/Layout'
-import Container from '@/components/ui/utils/Container'
 import { useRouter } from 'next/router'
 import GameButton from '@/components/ui/utils/GameButton'
 import { LINKS } from '@/libs/constants'
@@ -9,8 +8,12 @@ export default function Home() {
 
   const router = useRouter()
 
-  const play = () => {
-    router.push("/play")
+  const quickGame = () => {
+    router.push("/play/quick-game")
+  }
+
+  const PVE = () => {
+    router.push("/play/play-with-bot")
   }
 
   return (
@@ -26,16 +29,16 @@ export default function Home() {
 
         <div data-aos="fade-up" className='flex flex-grow flex-col justify-center items-center text-white w-full'>
 
+          <GameButton onClick={quickGame} color='blue'>Quick Game</GameButton>
 
-          <GameButton onClick={play} color='blue'>Play With Bot</GameButton>
+          <GameButton onClick={PVE} color='blue'>Play With Bot</GameButton>
 
           <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='blue'>Achiements</GameButton>
 
-          <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton>
+          {/* <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton> */}
 
           <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='blue'>Match History</GameButton>
           
-
         </div>
 
       </Layout>

@@ -1,14 +1,14 @@
 import Head from 'next/head'
 import Layout from '@/components/ui/utils/Layout'
 import Container from '@/components/ui/utils/Container'
-import PlayOptions from '@/components/ui/game/PlayOptions'
+import PlayOptions from '@/components/game/PlayOptions'
 import { useState } from 'react'
+import Fight from '@/components/game/Fight'
+import { GAME_STATUS, PLAYER_MOVE } from '@/libs/constants'
+import GameStatus from '@/components/game/GameStatus'
 
-export default function Home() {
+export default function PlayWithBot() {
 
-    const [option, setOption] = useState(0)
-
-    console.log(option)
 
     return (
         <>
@@ -23,7 +23,7 @@ export default function Home() {
 
                 <div className='flex items-center justify-center w-full'>
 
-                    <PlayOptions setOption={setOption} />
+                    <Fight round={10} playerMove={PLAYER_MOVE.ROCK}  opponentMove={PLAYER_MOVE.SCISSORS}  gameStatus={GAME_STATUS.DRAW} hide={() => null} />
 
                 </div>
 

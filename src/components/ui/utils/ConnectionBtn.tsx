@@ -10,8 +10,6 @@ const ConnectionBtn = () => {
 
     const { currentUser, profileExists, logOut, logIn, signUp, createProfile } = useAuth()
 
-    console.log(currentUser)
-
     const notAuthenticated = (
         <button 
             onClick={logIn}

@@ -1,16 +1,9 @@
 import { useState } from "react"
 import Link from "next/link"
-import { useScroll } from "@/hooks/windows"
-import { links } from "@/libs/routes"
-import HambuggerMenu from "./HambuggerMenu"
 import { LINKS } from "@/libs/constants"
 import ConnectionBtn from "../utils/ConnectionBtn"
+import { useScroll } from "@/hooks/window"
 
-const navigation = [
-    { name: 'Achievements', href: LINKS.ACHIEVEMENTS },
-    { name: 'LeaderBoard', href: LINKS.LEADERBOARD },
-    { name: 'Match History', href: LINKS.MATCH_HISTORY }
-]
 
 const Navbar = () => {
 

@@ -1,3 +1,5 @@
+import getAccount from "@/flow/scripts/getAccount";
+import createProfile from "@/flow/transactions/accountSetUp";
 import * as fcl from "@onflow/fcl";
 import {
   createContext,
@@ -7,7 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useTransaction } from "./TransactionContext";
+
 
 export const AuthContext = createContext({});
 
@@ -19,35 +21,37 @@ interface IProps {
 
 export default function AuthProvider({ children } : IProps) {
   
-  const { initTransactionState, setTxId, setTransactionStatus } = useTransaction();
   const [currentUser, setUser] = useState({ loggedIn: false, addr: undefined });
+  const [checkProfile, setCheckProfile] = useState(false);
   const [userProfile, setProfile] = useState(null);
   const [profileExists, setProfileExists] = useState(false);
 
   useEffect(() => fcl.currentUser.subscribe(setUser), []);
 
-  // const loadProfile = useCallback(async () => {
-  //   const profile = await fcl.query({
-  //     cadence: `
-  //       import Profile from 0xProfile
+  const loadProfile = useCallback(async () => {
+    if (currentUser.loggedIn) {
+      const profile = await getAccount(currentUser?.addr)
 
-  //       pub fun main(address: Address): Profile.ReadOnly? {
-  //         return Profile.read(address)
-  //       }
-  //     `,
-  //     args: (arg, t) => [arg(currentUser.addr, t.Address)],
-  //   });
-  //   setProfile(profile ?? null);
-  //   setProfileExists(profile !== null);
-  //   return profile;
-  // }, [currentUser, setProfile, setProfileExists]);
+      console.log(" profile ", profile)
+      setProfile(profile ?? null);
+      setCheckProfile(true)
+      setProfileExists(profile !== null);
+      return profile;
+    }
+  }, [currentUser.loggedIn, currentUser.addr, setProfile, setProfileExists]);
 
-  // useEffect(() => {
-  //   // Upon login check if a userProfile exists
-  //   if (currentUser.loggedIn && userProfile === null) {
-  //     loadProfile();
-  //   }
-  // }, [currentUser, userProfile, loadProfile]);
+  useEffect(() => {
+    // Upon login check if a userProfile exists
+    if (currentUser.loggedIn && userProfile === null) {
+      loadProfile();
+    }
+  }, [currentUser, userProfile, loadProfile]);
+
+  useEffect(() => {
+    if (currentUser?.loggedIn && checkProfile && !userProfile) {
+      createProfile()
+    }
+  }, [currentUser?.loggedIn, checkProfile, userProfile])
 
   const logOut = async () => {
     await fcl.unauthenticate();
@@ -63,83 +67,6 @@ export default function AuthProvider({ children } : IProps) {
   const signUp = () => {
     fcl.signUp();
   };
-
-  // const createProfile = async () => {
-  //   initTransactionState();
-
-  //   const transactionId = await fcl.mutate({
-  //     cadence: `
-  //       import Profile from 0xProfile
-
-  //       transaction {
-  //         prepare(account: AuthAccount) {
-  //           // Only initialize the account if it hasn't already been initialized
-  //           if (!Profile.check(account.address)) {
-  //             // This creates and stores the profile in the user's account
-  //             account.save(<- Profile.new(), to: Profile.privatePath)
-
-  //             // This creates the public capability that lets applications read the profile's info
-  //             account.link<&Profile.Base{Profile.Public}>(Profile.publicPath, target: Profile.privatePath)
-  //           }
-  //         }
-  //       }
-  //     `,
-  //     payer: fcl.authz,
-  //     proposer: fcl.authz,
-  //     authorizations: [fcl.authz],
-  //     limit: 50,
-  //   });
-  //   setTxId(transactionId);
-  //   fcl.tx(transactionId).subscribe((res) => {
-  //     setTransactionStatus(res.status);
-  //     if (res.status === 4) {
-  //       loadProfile();
-  //     }
-  //   });
-  // };
-
-  // const updateProfile = async ({ name, color, info }) => {
-  //   console.log("Updating profile", { name, color, info });
-  //   initTransactionState();
-
-  //   const transactionId = await fcl.mutate({
-  //     cadence: `
-  //       import Profile from 0xProfile
-
-  //       transaction(name: String, color: String, info: String) {
-  //         prepare(account: AuthAccount) {
-  //           account
-  //             .borrow<&Profile.Base{Profile.Owner}>(from: Profile.privatePath)!
-  //             .setName(name)
-
-  //           account
-  //             .borrow<&Profile.Base{Profile.Owner}>(from: Profile.privatePath)!
-  //             .setInfo(info)
-
-  //           account
-  //             .borrow<&Profile.Base{Profile.Owner}>(from: Profile.privatePath)!
-  //             .setColor(color)
-  //         }
-  //       }
-  //     `,
-  //     args: (arg, t) => [
-  //       arg(name, t.String),
-  //       arg(color, t.String),
-  //       arg(info, t.String),
-  //     ],
-  //     payer: fcl.authz,
-  //     proposer: fcl.authz,
-  //     authorizations: [fcl.authz],
-  //     limit: 50,
-  //   });
-  //   setTxId(transactionId);
-  //   fcl.tx(transactionId).subscribe((res) => {
-  //     setTransactionStatus(res.status);
-  //     if (res.status === 4) {
-  //       loadProfile();
-  //     }
-  //   });
-  // };
 
   const value = {
     currentUser,

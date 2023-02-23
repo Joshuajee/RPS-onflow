@@ -1,13 +1,47 @@
 import Head from 'next/head'
+import { useEffect, useState } from 'react'
 import Layout from '@/components/ui/utils/Layout'
 import Container from '@/components/ui/utils/Container'
 import PlayOptions from '@/components/game/PlayOptions'
-import { useState } from 'react'
 import Fight from '@/components/game/Fight'
 import { GAME_STATUS, PLAYER_MOVE } from '@/libs/constants'
 import GameStatus from '@/components/game/GameStatus'
+import useGamePVEPlay from '@/hooks/useGamePVEPlay'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function PlayWithBot() {
+
+    const { currentUser } = useAuth()
+
+    const [playerMove, setPlayerMove] = useState<null | PLAYER_MOVE>(null)
+
+    const [showFight, setShowFight] = useState(false)
+
+    const  { play, round, gameStatus, opponentMove, opponentWins, playerWins, gameWinner } = useGamePVEPlay(currentUser?.addr)
+
+    useEffect(() => {
+        if (playerMove !== null) {
+            play(playerMove)
+        }
+    }, [playerMove])
+
+    const hide = () => {
+        setShowFight(false)
+        setPlayerMove(null)
+    }
+
+
+    const playingMode = (
+        <>
+            <GameStatus round={round} playerWins={playerWins} opponentWins={opponentWins} />
+            <PlayOptions setPlayerMove={setPlayerMove} />
+        </>
+    )
+
+    const fighingMode = (
+        <Fight round={10} playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
+    )
+
 
 
     return (
@@ -23,8 +57,10 @@ export default function PlayWithBot() {
 
                 <div className='flex items-center justify-center w-full'>
 
-                    <Fight round={10} playerMove={PLAYER_MOVE.ROCK}  opponentMove={PLAYER_MOVE.SCISSORS}  gameStatus={GAME_STATUS.DRAW} hide={() => null} />
-
+                    <div className='flex flex-col items-center justify-center w-full text-white'>
+                        { showFight ? fighingMode : playingMode}
+                    </div>
+        
                 </div>
 
             </Layout>

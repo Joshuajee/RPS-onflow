@@ -6,9 +6,8 @@ import { useState } from 'react'
 const ConnectionBtn = () => {
 
     const [show, setShow] = useState(false)
-    const [showOptions, setShowOptions] = useState(false)
 
-    const { currentUser, profileExists, logOut, logIn, signUp, createProfile } = useAuth()
+    const { currentUser, logOut, logIn } = useAuth()
 
     const notAuthenticated = (
         <button 
@@ -19,8 +18,11 @@ const ConnectionBtn = () => {
     )
 
     const authenticated = (
-        <div onClick={() => setShow(!show)} className='px-6 p-2 hover:cursor-pointer cursor-pointer rounded-3xl border-white border-[1px]'>
-            <span> {currentUser.addr}  </span> 
+        <div className='flex justify-center items-center'>
+            <div onClick={() => setShow(!show)} className='px-6 p-2 hover:cursor-pointer cursor-pointer rounded-3xl border-white border-[1px]'>
+                <span> {currentUser.addr} </span>
+            </div>
+            <button className='ml-2' onClick={logOut}> logout </button> 
         </div>
     )
 

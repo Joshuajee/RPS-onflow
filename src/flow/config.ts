@@ -7,6 +7,3 @@ config({
   "discovery.wallet": process.env.NEXT_PUBLIC_DISCOVERY_WALLET,
   "0xRPSGAME": process.env.NEXT_PUBLIC_CONTRACT_ACCT // The account address where the smart contract lives
 })
-
-
-console.log(process.env.NEXT_PUBLIC_CONTRACT_ACCT)

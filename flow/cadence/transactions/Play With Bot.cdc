@@ -7,20 +7,9 @@ transaction {
         
         let play =  game?.play(move: RPSGAME.GameMove.paper)
 
+        acct.save(<-game!, to: RPSGAME.PlayingBotStoragePath)
+
         log(play)
-
-        if (play?.gameStatus == RPSGAME.FinalGameStatus.playing) {
-            acct.save(<-game!, to: RPSGAME.PlayingBotStoragePath)
-        } else {
-            let gamesRef = acct.getCapability<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath)
-                .borrow()?? panic("Could not borrow receiver reference")
-            
-            gamesRef.addPVE(game: <-game!)
-        }
-    }
-
-    execute {
-
     }
 
 }

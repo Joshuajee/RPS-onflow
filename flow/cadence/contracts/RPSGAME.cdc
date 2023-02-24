@@ -1,5 +1,9 @@
 pub contract RPSGAME {
 
+    // Events
+
+    pub event CreatedGamePVE(id:UInt64)
+
     pub let GamesStoragePath: StoragePath
     pub let GamesPublicPath: PublicPath
     pub let PlayingBotStoragePath: StoragePath
@@ -36,11 +40,11 @@ pub contract RPSGAME {
     pub struct GameStatus {
         pub let playerMove: GameMove
         pub let opponentMove: GameMove
-        pub let wins: UInt64
-        pub let loses: UInt64
-        pub let round: UInt64
+        pub let wins: UInt8
+        pub let loses: UInt8
+        pub let round: UInt8
         pub let gameStatus: FinalGameStatus
-        init(playerMove: GameMove, opponentMove: GameMove, wins: UInt64, loses: UInt64, round: UInt64, gameStatus: FinalGameStatus) {
+        init(playerMove: GameMove, opponentMove: GameMove, wins: UInt8, loses: UInt8, round: UInt8, gameStatus: FinalGameStatus) {
             self.playerMove = playerMove
             self.opponentMove = opponentMove
             self.wins = wins
@@ -51,6 +55,7 @@ pub contract RPSGAME {
     }
 
     pub resource interface GamesCollectionInterface {
+        pub let name: String
         pub fun addPVE(game: @GamePVE)
         pub fun getIDs(): [UInt64]
         pub fun idExists(id: UInt64): Bool
@@ -59,7 +64,12 @@ pub contract RPSGAME {
 
     pub resource interface GameInterface {
         pub let id: UInt64
-        pub var rounds: UInt64
+        pub let battleResults: [GameState] 
+        pub var rounds: UInt8
+        pub var wins: UInt8
+        pub var loses: UInt8
+        pub var playerMoves: [GameMove] 
+        pub var opponentMoves: [GameMove] 
         pub fun play (move: GameMove): GameStatus
         pub fun rock (move: GameMove): GameState 
         pub fun paper(move: GameMove): GameState 
@@ -69,10 +79,13 @@ pub contract RPSGAME {
     pub resource GamePVE: GameInterface {
     
         pub let id: UInt64
-        pub var rounds: UInt64
-        pub var wins: UInt64
-        pub var loses: UInt64
+        pub let battleResults: [GameState]
+        pub var rounds: UInt8
+        pub var wins: UInt8
+        pub var loses: UInt8
         pub var gameStatus: FinalGameStatus
+        pub var playerMoves: [GameMove] 
+        pub var opponentMoves: [GameMove] 
     
         init (id: UInt64) {
             self.id = id
@@ -80,6 +93,9 @@ pub contract RPSGAME {
             self.wins = 0
             self.loses = 0
             self.gameStatus = FinalGameStatus.playing
+            self.playerMoves = []
+            self.opponentMoves = []
+            self.battleResults = []
         }
 
         pub fun play (move: GameMove): GameStatus {
@@ -98,21 +114,28 @@ pub contract RPSGAME {
             self.rounds = self.rounds + 1
             let botMove = self.getMoveFromInt(move: Int(unsafeRandom() % 3)) 
             let gameStatus = self.rules(playerMove: move, opponentMove: botMove)
+
+            // recording moves
+            self.playerMoves.append(move)
+            self.opponentMoves.append(botMove)
             
             switch (gameStatus) {
                 case GameState.won:
                     self.wins = self.wins + 1
+                    self.battleResults.append(GameState.won)
                     if (self.wins >= 2) {
                         self.gameStatus = FinalGameStatus.won
                     }
                     break
                 case GameState.lost:
                     self.loses = self.loses + 1
+                    self.battleResults.append(GameState.lost)
                     if (self.loses >= 2) {
                         self.gameStatus = FinalGameStatus.lost
                     }
                     break
                 default:
+                    self.battleResults.append(GameState.draw)
                     log("draw")
             }
 
@@ -209,10 +232,13 @@ pub contract RPSGAME {
         pub var won: UInt64
         pub var lost: UInt64
 
-        init () {
+        pub let name: String
+
+        init (name: String) {
             self.games <- {}
             self.won = 0
             self.lost = 0
+            self.name = name
         }
 
         pub fun idExists(id: UInt64): Bool {
@@ -229,6 +255,11 @@ pub contract RPSGAME {
 
         // add game to games collection
         pub fun addPVE(game: @GamePVE) {
+            if (game.gameStatus == FinalGameStatus.won) {
+                self.won = self.won + 1
+            } else {
+                self.lost = self.lost + 1
+            }
             self.games[game.id] <-! game
         }
 
@@ -242,8 +273,8 @@ pub contract RPSGAME {
     }
 
     // creates a new empty Game resource and returns it
-    pub fun createEmptyGame(): @Games {
-        return <- create Games()
+    pub fun createEmptyGame(name: String): @Games {
+        return <- create Games(name: name)
     }
 
     // start game with environment
@@ -252,6 +283,7 @@ pub contract RPSGAME {
         var newGame <- create GamePVE(id: self.idCount)
         // change the id so that each ID is unique
         self.idCount = self.idCount + 1
+        emit CreatedGamePVE(id: self.idCount)
         return <-newGame
     }
 
@@ -260,17 +292,9 @@ pub contract RPSGAME {
         self.GamesPublicPath = /public/games
         self.PlayingBotStoragePath = /storage/playingbot
         self.PlayingBotPublicPath = /public/playingbot
-
-
-        // initialize the ID count to one
         self.idCount = 0
-
-        // store an empty Games Collection in account storage
-        self.account.save(<-self.createEmptyGame(), to: self.GamesStoragePath)
-
-        // publish a reference to the Collection in storage
-        self.account.link<&{GamesCollectionInterface}>(self.GamesPublicPath, target: self.GamesStoragePath)
 	}
 
 
 }
+ 

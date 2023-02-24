@@ -22,9 +22,9 @@ const Navbar = () => {
                 </Link>
                 <div className="flex justify-evenly">
 
-                    <p className="px-2">Wins: {userProfile?.win}</p>
+                    <p className="px-2">Wins: {userProfile?.won || 0}</p>
 
-                    <p className="px-2">Loses: {userProfile?.loses} </p>
+                    <p className="px-2">Loses: {userProfile?.lost || 0} </p>
 
                 </div>
                 <ConnectionBtn />

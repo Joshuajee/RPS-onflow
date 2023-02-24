@@ -40,8 +40,6 @@ export default function TransactionProvider({ children }: IProps) {
     setTransactionStatus,
   };
 
-  console.log("TransactionProvider", value);
-
   return (
     <TransactionContext.Provider value={value as any}>
       {children}

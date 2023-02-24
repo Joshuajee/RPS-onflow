@@ -29,14 +29,14 @@ export default function AuthProvider({ children } : IProps) {
   useEffect(() => fcl.currentUser.subscribe(setUser), []);
 
   const loadProfile = useCallback(async () => {
-    if (currentUser.loggedIn) {
-      const profile = await getAccount(currentUser?.addr)
-
-      console.log(" profile ", profile)
-      setProfile(profile ?? null);
-      setCheckProfile(true)
-      setProfileExists(profile !== null);
-      return profile;
+    if (currentUser?.loggedIn) {
+      try {
+        const profile = await getAccount(currentUser?.addr)
+        setProfile(profile ?? null);
+        setProfileExists(profile !== null);
+      } catch (e) {
+        console.error(e)
+      }
     }
   }, [currentUser.loggedIn, currentUser.addr, setProfile, setProfileExists]);
 
@@ -46,12 +46,6 @@ export default function AuthProvider({ children } : IProps) {
       loadProfile();
     }
   }, [currentUser, userProfile, loadProfile]);
-
-  useEffect(() => {
-    if (currentUser?.loggedIn && checkProfile && !userProfile) {
-      createProfile()
-    }
-  }, [currentUser?.loggedIn, checkProfile, userProfile])
 
   const logOut = async () => {
     await fcl.unauthenticate();
@@ -75,10 +69,11 @@ export default function AuthProvider({ children } : IProps) {
     logOut,
     logIn,
     signUp,
-    //loadProfile,
+    loadProfile,
     //createProfile,
     //updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+ 

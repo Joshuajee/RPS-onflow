@@ -1,5 +1,7 @@
+import * as fcl from "@onflow/fcl";
 import getActiveGamePVE from '@/flow/scripts/getActiveGamePVE';
 import newGameWithBot from '@/flow/transactions/newGameWithBot';
+import playGamePVE from '@/flow/transactions/playGamePVE';
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
 import { rules } from '@/libs/gamePlay';
 import { useState, useEffect, useCallback } from 'react';
@@ -17,63 +19,73 @@ const useGamePVEPlay = (address: string) => {
     const [gameWinner, setGameWinner] = useState(FINAL_GAME_STATUS.PLAYING)
 
 
-    const play = useCallback ((move: PLAYER_MOVE) => {
+    const fetchState = useCallback(async () => {
+
+        if (address) {
+
+            try {
+
+                const getActiveGame = await getActiveGamePVE(address)
+
+                console.log(getActiveGame)
+
+                if (!getActiveGame) {   
+                    setRound(0)
+                    setGameStatus(GAME_STATUS.START)
+                    setPlayerWins(0)
+                    setOpponentWins(0)
+                    setOpponentMove(PLAYER_MOVE.NONE)
+                    setGameWinner(FINAL_GAME_STATUS.PLAYING)
+                    setNewGame(true)
+                } else {
+                    
+                    const opponentMove = getActiveGame?.opponentMoves[getActiveGame?.opponentMoves.length - 1]?.rawValue
+                    
+                    const battleResults = getActiveGame?.battleResults
+                    const battleResult = battleResults[battleResults.length - 1]?.rawValue
+
+                    console.log(battleResult)
+                    
+                    setRound(getActiveGame?.rounds)
+                    setGameStatus(battleResult)
+                    setPlayerWins(getActiveGame?.wins)
+                    setOpponentWins(getActiveGame?.loses)
+                    setOpponentMove(opponentMove)
+                    setGameWinner(getActiveGame?.gameStatus?.rawValue)
+
+                    setNewGame(false)
+                }
+
+            } catch (e) {
+                console.error(e)
+            }
+            
+        }
+
+    }, [address])
+
+
+    const play = useCallback (async(move: PLAYER_MOVE) => {
 
         if (newGame) {
-            const game = newGameWithBot(move)
-
-            console.log(game)
-        }
-
-        // const opponentMove = (Math.floor(Math.random() * 3)) as PLAYER_MOVE;
-
-        // const gameStatus = rules(move, opponentMove)
-
-        // setGameStatus(gameStatus)
-
-        // if (opponentMove !== null) setOpponentMove(opponentMove as PLAYER_MOVE)
-
-        // switch (gameStatus) {
-        //     case GAME_STATUS.PLAYER_WON:
-        //         setPlayerWins(x => x + 1)
-        //         break
-        //     case GAME_STATUS.OPPONENT_WON:
-        //         setOpponentWins(x => x + 1)
-        //         break
-        //     default:
-        //         console.log("draw")
-        // }
-
-        setRound(x => x + 1)
-
-    }, [newGame])
-
-
-
-    useEffect(() => {
-
-        const init = async () => {
-            const getActiveGame = await getActiveGamePVE(address)
-
-            console.log(getActiveGame)
-
-            if (!getActiveGame) {   
-                setRound(0)
-                setGameStatus(GAME_STATUS.START)
-                setPlayerWins(0)
-                setOpponentWins(0)
-                setOpponentMove(PLAYER_MOVE.NONE)
-                setGameWinner(FINAL_GAME_STATUS.PLAYING)
-                setNewGame(true)
-            } else {
-
-                setNewGame(false)
+            try  {
+                await newGameWithBot(move, fetchState)
+            } catch (e) {
+                console.error(e)
             }
-
+        } else {
+            try  {
+                await playGamePVE(move, fetchState)
+            } catch (e) {
+                console.error(e)
+            }
         }
 
-        init()
-    }, [address])
+    }, [newGame, fetchState])
+
+    useEffect(() => {  
+        fetchState()
+    }, [fetchState])
 
     useEffect(() => {
         if (playerWins >= 2) {
@@ -83,7 +95,7 @@ const useGamePVEPlay = (address: string) => {
         } 
     }, [playerWins, opponentWins])
 
-    return { round, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play }
+    return { round, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState }
 }
 
 

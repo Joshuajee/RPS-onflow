@@ -1,7 +1,7 @@
 import { contract } from "@/libs/utils";
 import * as fcl from "@onflow/fcl";
 
-const createProfile = async () => {
+const createProfile = async (name: string, callBack: () => void) => {
 
   const transactionId = await fcl.mutate({
     cadence: `
@@ -11,7 +11,7 @@ const createProfile = async () => {
         prepare(acct: AuthAccount) {
     
           // Create a new empty Games
-          let games <- RPSGAME.createEmptyGame()
+          let games <- RPSGAME.createEmptyGame(name: "${name}")
   
           // store the empty Account in account storage
           acct.save<@RPSGAME.Games>(<-games, to: RPSGAME.GamesStoragePath)
@@ -22,6 +22,7 @@ const createProfile = async () => {
           let capability = acct.link<&RPSGAME.Games>(RPSGAME.GamesPublicPath, target: RPSGAME.GamesStoragePath)
   
           log("Capability created")
+
         }
       }
     `,
@@ -32,11 +33,8 @@ const createProfile = async () => {
   });
 
   fcl.tx(transactionId).subscribe((res: any) => {
-    //setTransactionStatus(res.status);
-    console.log(res)
     if (res.status === 4) {
-      console.log(res.status)
-      //loadProfile();
+      callBack()
     }
   });
 

@@ -36,7 +36,7 @@ export default function QuickGame() {
     const playingMode = (
         <>
             <GameStatus round={round} playerWins={playerWins} opponentWins={opponentWins} />
-            <PlayOptions setPlayerMove={setPlayerMove} />
+            <PlayOptions play={play}  setPlayerMove={setPlayerMove}/>
         </>
     )
 

@@ -1,4 +1,3 @@
-import { useDimension } from '@/hooks/window';
 import { ReactNode } from 'react';
 import Footer from '../navigation/Footer';
 import Navbar from '../navigation/Navbar';
@@ -9,10 +8,6 @@ interface IProps {
 }
 
 const Layout = ({children} : IProps) => {
-
-    const { width, height } = useDimension()
-
-    console.log({ width, height } )
 
     return (
         <div className={`flex flex-col min-h-screen  bg-[#22262E] overflow-hidden`}>

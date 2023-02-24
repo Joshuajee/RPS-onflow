@@ -19,6 +19,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/ui/utils/Badge.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/ui/utils/Badge.jsx", "src/components/modals/GameEnded.test.js"],
   "exclude": ["node_modules"]
 }

@@ -1,8 +1,16 @@
+import React, { ReactNode } from "react"
 import { MdClose } from "react-icons/md"
 
-const ModalWrapper = ({title, open, handleClose, children}) => {
+interface IProps {
+    title: string, 
+    open: boolean, 
+    handleClose: () => void, 
+    children: ReactNode
+}
 
-    if (!open) return
+const ModalWrapper = ({title, open, handleClose, children}: IProps) => {
+
+    if (!open) return <React.Fragment></React.Fragment>
 
     return (
         <div className="fixed top-0 left-0 h-screen w-screen z-10">

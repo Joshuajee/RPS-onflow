@@ -2,33 +2,44 @@ import Head from 'next/head'
 import Layout from '@/components/ui/utils/Layout'
 import { useRouter } from 'next/router'
 import GameButton from '@/components/ui/utils/GameButton'
-import { LINKS } from '@/libs/constants'
+import { LINKS, PLAY_ROUTES } from '@/libs/constants'
 import { toast } from 'react-toastify'
 import { useAuth } from '@/contexts/AuthContext'
+import ModalWrapper from '@/components/modals/ModalWrapper'
+import CreateProfileForm from '@/components/modals/CreateProfileForm'
+import { useState } from 'react'
 
 export default function Home() {
 
   const router = useRouter()
 
-  const { currentUser } = useAuth()
+  const [open, setOpen] = useState(false)
+
+  const { currentUser, userProfile } = useAuth()
 
   const quickGame = () => {
-    router.push("/play/quick-game")
+    router.push(PLAY_ROUTES.QUICKGAME)
   }
 
   const PVE = () => {
     if (pleaseConnect()) return
-    router.push("/play/play-with-bot")
+    router.push(PLAY_ROUTES.PLAY_PVE)
   }
 
   const pleaseConnect = () => {
-    if (currentUser?.loggedIn) return false
-
-    toast.error(
-      "Please connect your wallet to proceed"
-    )
-
+    if (currentUser?.loggedIn) {
+      if (!userProfile) {
+        setOpen(true)
+        return true
+      }
+      return false
+    }
+    toast.error("Please connect your wallet to proceed")
     return true
+  }
+
+  const handleClose = () => {
+    setOpen(false)
   }
 
   return (
@@ -58,6 +69,11 @@ export default function Home() {
 
       </Layout>
 
+      <ModalWrapper title={"Create Account"} open={open} handleClose={handleClose}>
+        <CreateProfileForm handleClose={handleClose} />
+      </ModalWrapper>
+
     </>
   )
 }
+ 

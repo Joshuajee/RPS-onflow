@@ -7,7 +7,7 @@ transaction {
     prepare(acct: AuthAccount) {
 
         // Create a new empty Games
-        let games <- RPSGAME.createEmptyGame()
+        let games <- RPSGAME.createEmptyGame(name: "Jee")
 
         // store the empty Account in account storage
         acct.save<@RPSGAME.Games>(<-games, to: RPSGAME.GamesStoragePath)

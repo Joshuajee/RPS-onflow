@@ -2,18 +2,44 @@ import Head from 'next/head'
 import Layout from '@/components/ui/utils/Layout'
 import { useRouter } from 'next/router'
 import GameButton from '@/components/ui/utils/GameButton'
-import { LINKS } from '@/libs/constants'
+import { LINKS, PLAY_ROUTES } from '@/libs/constants'
+import { toast } from 'react-toastify'
+import { useAuth } from '@/contexts/AuthContext'
+import ModalWrapper from '@/components/modals/ModalWrapper'
+import CreateProfileForm from '@/components/modals/CreateProfileForm'
+import { useState } from 'react'
 
 export default function Home() {
 
   const router = useRouter()
 
+  const [open, setOpen] = useState(false)
+
+  const { currentUser, userProfile } = useAuth()
+
   const quickGame = () => {
-    router.push("/play/quick-game")
+    router.push(PLAY_ROUTES.QUICKGAME)
   }
 
   const PVE = () => {
-    router.push("/play/play-with-bot")
+    if (pleaseConnect()) return
+    router.push(PLAY_ROUTES.PLAY_PVE)
+  }
+
+  const pleaseConnect = () => {
+    if (currentUser?.loggedIn) {
+      if (!userProfile) {
+        setOpen(true)
+        return true
+      }
+      return false
+    }
+    toast.error("Please connect your wallet to proceed")
+    return true
+  }
+
+  const handleClose = () => {
+    setOpen(false)
   }
 
   return (
@@ -31,18 +57,23 @@ export default function Home() {
 
           <GameButton onClick={quickGame} color='blue'>Quick Game</GameButton>
 
-          <GameButton onClick={PVE} color='blue'>Play With Bot</GameButton>
+          <GameButton onClick={PVE} color={'red'}>Play With Bot</GameButton>
 
-          <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='blue'>Achiements</GameButton>
+          <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='yellow'>Achiements</GameButton>
 
           {/* <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton> */}
 
-          <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='blue'>Match History</GameButton>
+          <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='gray'>Match History</GameButton>
           
         </div>
 
       </Layout>
 
+      <ModalWrapper title={"Create Account"} open={open} handleClose={handleClose}>
+        <CreateProfileForm handleClose={handleClose} />
+      </ModalWrapper>
+
     </>
   )
 }
+ 

@@ -1,10 +1,10 @@
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
 import { rules } from '@/libs/gamePlay';
-import { FILE } from 'dns';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 
 const useQuickPlay = () => {
+
+    const [getGame, setGetGame] = useState(null)
 
     const [round, setRound] = useState(0)
     const [gameStatus, setGameStatus] = useState(GAME_STATUS.START)
@@ -13,7 +13,6 @@ const useQuickPlay = () => {
     const [opponentMove, setOpponentMove] = useState(PLAYER_MOVE.NONE)
 
     const [gameWinner, setGameWinner] = useState(FINAL_GAME_STATUS.PLAYING)
-
 
 
     const play = (move: PLAYER_MOVE) => {
@@ -41,7 +40,7 @@ const useQuickPlay = () => {
 
     }
 
-    const init = () => {
+    const init = async() => {
         setRound(0)
         setGameStatus(GAME_STATUS.START)
         setPlayerWins(0)

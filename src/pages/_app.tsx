@@ -10,11 +10,14 @@ import 'aos/dist/aos.css';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function App({ Component, pageProps }: AppProps) {
+
   useEffect(() => {
     AOS.init({ duration: 500 });
   }, []);
 
-
+  useEffect(() => {
+    import("@lottiefiles/lottie-player");
+  }, [])
 
   return ( 
     <TransactionProvider>

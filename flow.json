@@ -1,0 +1,23 @@
+{
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "ca99975c770c6096a7b14daadca001bdc58b2d2fe9a51dd2f1b6af974d22f854"
+		}
+	},
+	"contracts": {
+		"RPSGAME": "./flow/cadence/contracts/RPSGAME.cdc"
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": ["RPSGAME"]
+		}
+	}
+
+}

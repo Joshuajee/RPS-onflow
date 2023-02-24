@@ -12,15 +12,15 @@ interface IProps {
 }
 
 
-const Fight = ({ round, playerMove, opponentMove, gameStatus, hide } : IProps) => {
+const Fight = ({ playerMove, opponentMove, gameStatus, hide } : IProps) => {
 
-    console.log(gameStatus)
+    console.log(opponentMove)
 
 
     return  (
         <div className="text-white flex flex-col justify-between w-full md:max-w-xl">
 
-            <h3 data-aos="fade-in" className='my-4 md:my-10 text-center text-xl md:text-2xl'> {gameStatusStr(gameStatus)} </h3>
+            <h3 data-aos="fade-in" className='my-4 md:my-10 text-center text-xl md:text-2xl'> {gameStatusStr(Number(gameStatus))} </h3>
 
             <div className="flex justify-between">
 
@@ -34,7 +34,7 @@ const Fight = ({ round, playerMove, opponentMove, gameStatus, hide } : IProps) =
                 </div>
 
                 <OptionCard aos="slide-down">
-                    {getMoveStr(opponentMove)}
+                    {getMoveStr(Number(opponentMove))}
                 </OptionCard>
 
             </div>

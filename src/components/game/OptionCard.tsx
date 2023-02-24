@@ -11,7 +11,7 @@ const OptionCard = ( { children, onClick, aos }: IProps ) => {
     return (
         <button
             onClick={onClick}
-            className="border-white border-[1px] h-60 w-40 text-white"
+            className="border-white border-[1px]  h-32 w-20 md:h-60 md:w-40 text-white"
             data-aos={aos}
             >
             {children}

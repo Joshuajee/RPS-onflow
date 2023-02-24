@@ -8,8 +8,9 @@ interface IProps {
 }
 
 const Layout = ({children} : IProps) => {
+
     return (
-        <div className='flex flex-col min-h-screen bg-[#22262E]'>
+        <div className={`flex flex-col min-h-screen  bg-[#22262E] overflow-hidden`}>
             <Navbar />
             <div className='relative top-16 flex-grow'>
                 <Container>

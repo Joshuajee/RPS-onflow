@@ -1,13 +1,61 @@
 import Head from 'next/head'
+import { useEffect, useState } from 'react'
 import Layout from '@/components/ui/utils/Layout'
-import Container from '@/components/ui/utils/Container'
 import PlayOptions from '@/components/game/PlayOptions'
-import { useState } from 'react'
 import Fight from '@/components/game/Fight'
-import { GAME_STATUS, PLAYER_MOVE } from '@/libs/constants'
+import { PLAYER_MOVE } from '@/libs/constants'
 import GameStatus from '@/components/game/GameStatus'
+import useGamePVEPlay from '@/hooks/useGamePVEPlay'
+import { useAuth } from '@/contexts/AuthContext'
+import ModalWrapper from '@/components/modals/ModalWrapper'
+import GameEnded from '@/components/modals/GameEnded'
+import { toast } from 'react-toastify'
 
 export default function PlayWithBot() {
+
+    const { currentUser } = useAuth()
+
+    const [open, setOpen] = useState(false)
+
+    const [playerMove, setPlayerMove] = useState<null | PLAYER_MOVE>(null)
+
+    const [showFight, setShowFight] = useState(false)
+
+    const  { play, fetchState, round, gameStatus, opponentMove, opponentWins, playerWins, gameWinner } = useGamePVEPlay(currentUser?.addr)
+
+    useEffect(() => {
+        if (gameWinner != 0) {
+            setOpen(true)
+        } else {
+            setOpen(false)
+        }
+    }, [gameWinner])
+
+    const hide = () => {
+        setShowFight(false)
+        setPlayerMove(null)
+    }
+
+    const playGame = async(move: PLAYER_MOVE) => {
+        await play(move)
+        setShowFight(true)
+    }
+
+    const playingMode = (
+        <>
+            <GameStatus round={round} playerWins={playerWins} opponentWins={opponentWins} />
+            <PlayOptions play={playGame} setPlayerMove={setPlayerMove} />
+        </>
+    )
+
+    const fighingMode = (
+        <Fight round={10} playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
+    )
+
+    const handleClose = async() => {
+        await fetchState()
+        setOpen(false)
+    }
 
 
     return (
@@ -20,15 +68,18 @@ export default function PlayWithBot() {
             </Head>
 
             <Layout>
-
                 <div className='flex items-center justify-center w-full'>
-
-                    <Fight round={10} playerMove={PLAYER_MOVE.ROCK}  opponentMove={PLAYER_MOVE.SCISSORS}  gameStatus={GAME_STATUS.DRAW} hide={() => null} />
-
+                    <div className='flex flex-col items-center justify-center w-full text-white'>
+                        { showFight ? fighingMode : playingMode}
+                    </div>
                 </div>
-
             </Layout>
+
+            <ModalWrapper title={"Game Ended"} open={open && !showFight} handleClose={() => toast.error("Cannot close, please create new game")}>
+                <GameEnded handleClose={handleClose} gameWinner={gameWinner} />
+            </ModalWrapper>
 
         </>
     )
 }
+ 

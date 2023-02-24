@@ -4,6 +4,11 @@ export enum LINKS {
     MATCH_HISTORY = "/match-history"
 }
 
+export enum PLAY_ROUTES {
+    QUICKGAME =  "/play/quick-game",
+    PLAY_PVE = "/play/play-with-bot",
+}
+
 export enum PLAYER_MOVE {
     ROCK =  0,
     PAPER = 1,

@@ -19,11 +19,24 @@ const createProfile = async (name: string, callBack: () => void) => {
           log("Games created for account 2")
   
           // create a public capability for the Games
-          let capability = acct.link<&RPSGAME.Games>(RPSGAME.GamesPublicPath, target: RPSGAME.GamesStoragePath)
+          let capability = acct.link<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath, target: RPSGAME.GamesStoragePath)
   
           log("Capability created")
-
+    
+          // // Create a new empty Vault object
+          // let vaultA <- RPSToken.createEmptyVault()
+          
+          // // Store the vault in the account storage
+          // acct.save<@RPSToken.Vault>(<-vaultA, to: RPSToken.VaultStoragePath)
+    
+          // log("Empty Vault stored")
+    
+          // // Create a public Receiver capability to the Vault
+          // let ReceiverRef = acct.link<&RPSToken.Vault{RPSToken.Receiver, RPSToken.Balance}>(RPSToken.ReceiverPublicPath, target: RPSToken.VaultStoragePath)
+    
+          // log("References created")
         }
+    
       }
     `,
     payer: fcl.authz,
@@ -41,3 +54,4 @@ const createProfile = async (name: string, callBack: () => void) => {
 };
 
 export default createProfile
+ 

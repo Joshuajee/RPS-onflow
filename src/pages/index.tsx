@@ -57,13 +57,13 @@ export default function Home() {
 
           <GameButton onClick={quickGame} color='blue'>Quick Game</GameButton>
 
-          <GameButton onClick={PVE} color={'red'}>Play With Bot</GameButton>
+          <GameButton onClick={PVE} color={'red'}>Play With Flow</GameButton>
 
-          <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='yellow'>Achiements</GameButton>
+          {/* <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='yellow'>Achiements</GameButton> */}
 
           {/* <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton> */}
 
-          <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='gray'>Match History</GameButton>
+          <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='yellow'>Match History</GameButton>
           
         </div>
 

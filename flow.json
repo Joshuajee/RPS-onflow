@@ -12,12 +12,18 @@
 		}
 	},
 	"contracts": {
-		"RPSGAME": "./flow/cadence/contracts/RPSGAME.cdc"
+		"RPSGAME": "./flow/cadence/contracts/RPSGAME.cdc",
+		"FungibleToken": "./flow/cadence/contracts/RPSToken/FungibleToken.cdc",
+		"NonFungibleToken": "./flow/cadence/contracts/RPSToken/utility/NonFungibleToken.cdc", 
+		"MetadataViews": "./flow/cadence/contracts/RPSToken/utility/MetadataViews.cdc",
+		"FungibleTokenMetadataViews": "./flow/cadence/contracts/RPSToken/FungibleTokenMetadataViews.cdc",
+		"RPSToken": "./flow/cadence/contracts/RPSToken/RPSToken.cdc"
 	},
 	"deployments": {
 		"emulator": {
-			"emulator-account": ["RPSGAME"]
+			"emulator-account": ["RPSGAME", "FungibleToken", "NonFungibleToken", "MetadataViews", "FungibleTokenMetadataViews", "RPSToken"]
 		}
 	}
 
 }
+ 

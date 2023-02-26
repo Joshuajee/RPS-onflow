@@ -7,6 +7,12 @@ export const dollarFormat = (amount: number) => {
     }).format(amount)
 }
 
+export const tokenFormat = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+    }).format(amount)
+}
+
 export const gameStatusStr = (staus: GAME_STATUS) : string => {
     switch (staus) {
         case GAME_STATUS.START:
@@ -16,7 +22,7 @@ export const gameStatusStr = (staus: GAME_STATUS) : string => {
         case GAME_STATUS.PLAYER_WON:
             return "YOU WON"
         case GAME_STATUS.OPPONENT_WON:
-            return "YOU LOST"
+            return "YOU LOSE"
         default:
             return "START GAME"
     }

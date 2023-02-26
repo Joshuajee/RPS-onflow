@@ -1,7 +1,6 @@
 pub contract RPSGAME {
 
     // Events
-
     pub event CreatedGamePVE(id:UInt64)
 
     pub let GamesStoragePath: StoragePath
@@ -59,7 +58,6 @@ pub contract RPSGAME {
         pub fun addPVE(game: @GamePVE)
         pub fun getIDs(): [UInt64]
         pub fun idExists(id: UInt64): Bool
-        pub fun getGamePVE(id: UInt64): @GamePVE
     }
 
     pub resource interface GameInterface {
@@ -70,13 +68,22 @@ pub contract RPSGAME {
         pub var loses: UInt8
         pub var playerMoves: [GameMove] 
         pub var opponentMoves: [GameMove] 
+    }
+
+    pub resource interface GameInterfacePrivate {
         pub fun play (move: GameMove): GameStatus
         pub fun rock (move: GameMove): GameState 
         pub fun paper(move: GameMove): GameState 
         pub fun scissors(move: GameMove): GameState 
+        pub fun rules (playerMove: GameMove, opponentMove: GameMove): GameState 
+        pub fun getMoveFromInt(move: Int): GameMove
+        //pub let vault: @RPSToken.Vault
+        pub let tokens: UFix64
+        //pub fun claimReward (): @RPSToken.Vault
+        destroy()
     }
 
-    pub resource GamePVE: GameInterface {
+    pub resource GamePVE: GameInterface, GameInterfacePrivate {
     
         pub let id: UInt64
         pub let battleResults: [GameState]
@@ -85,7 +92,10 @@ pub contract RPSGAME {
         pub var loses: UInt8
         pub var gameStatus: FinalGameStatus
         pub var playerMoves: [GameMove] 
-        pub var opponentMoves: [GameMove] 
+        pub var opponentMoves: [GameMove]
+        pub let tokens: UFix64 
+        //pub let vault: @RPSToken.Vault
+        
     
         init (id: UInt64) {
             self.id = id
@@ -96,19 +106,15 @@ pub contract RPSGAME {
             self.playerMoves = []
             self.opponentMoves = []
             self.battleResults = []
+            // Create Vault with random 0 to 5 tokens
+            self.tokens = UFix64(unsafeRandom() % 5)
+            //self.vault <- RPSToken.createVaultWithToken(token: self.tokens)
         }
 
         pub fun play (move: GameMove): GameStatus {
-            
-            if (self.gameStatus != FinalGameStatus.playing) { 
-                return GameStatus(
-                    playerMove: GameMove.rock, 
-                    opponentMove: GameMove.rock, 
-                    wins: self.wins, 
-                    loses: self.loses, 
-                    round: self.rounds,
-                    gameStatus: self.gameStatus
-                )
+
+            pre {
+                self.gameStatus == FinalGameStatus.playing: "Game Over"
             }
 
             self.rounds = self.rounds + 1
@@ -137,10 +143,6 @@ pub contract RPSGAME {
                 default:
                     self.battleResults.append(GameState.draw)
                     log("draw")
-            }
-
-            if (self.gameStatus != FinalGameStatus.playing) { 
-
             }
 
             return GameStatus(
@@ -224,6 +226,15 @@ pub contract RPSGAME {
             }
         }
 
+        // pub fun claimReward (): @RPSToken.Vault {
+        //     let temporary <- self.vault.withdraw(amount: self.tokens)
+        //     return <- temporary
+        // }
+
+        // destroy() {
+        //     destroy self.vault
+        // }
+ 
     }
 
     pub resource Games: GamesCollectionInterface {
@@ -231,7 +242,6 @@ pub contract RPSGAME {
         pub var games: @{UInt64: GamePVE}
         pub var won: UInt64
         pub var lost: UInt64
-
         pub let name: String
 
         init (name: String) {
@@ -249,10 +259,6 @@ pub contract RPSGAME {
             return self.games.keys
         }
 
-        destroy() {
-            destroy self.games
-        }
-
         // add game to games collection
         pub fun addPVE(game: @GamePVE) {
             if (game.gameStatus == FinalGameStatus.won) {
@@ -263,11 +269,8 @@ pub contract RPSGAME {
             self.games[game.id] <-! game
         }
 
-        // get game and move to context
-        pub fun getGamePVE(id: UInt64): @GamePVE {
-            let game <- self.games.remove(key: id)
-                ?? panic("Cannot get the specified game id")
-            return <-game
+        destroy() {
+            destroy self.games
         }
 
     }

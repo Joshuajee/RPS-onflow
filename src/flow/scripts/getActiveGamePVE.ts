@@ -3,17 +3,11 @@ import { contract } from "@/libs/utils";
 
 const getActiveGamePVE = async (account: string | undefined) => { 
 
-    console.log(account)
-
     if (!account) return
 
     return await fcl.query({
         cadence: `
         import RPSGAME from ${contract}
-
-        // pub fun main(address: Address): Address {
-        //     return address
-        // }
 
         pub fun main(address: Address): &RPSGAME.GamePVE {
 

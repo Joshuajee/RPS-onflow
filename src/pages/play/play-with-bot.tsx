@@ -17,11 +17,16 @@ export default function PlayWithBot() {
 
     const [open, setOpen] = useState(false)
 
-    const [playerMove, setPlayerMove] = useState<null | PLAYER_MOVE>(null)
+    const [playerMove, setPlayerMove] = useState(PLAYER_MOVE.NONE)
 
     const [showFight, setShowFight] = useState(false)
 
-    const  { play, fetchState, round, gameStatus, opponentMove, opponentWins, playerWins, gameWinner } = useGamePVEPlay(currentUser?.addr)
+    const  { 
+        play, fetchState, init, setOpponentMove,
+        round, gameStatus, opponentMove, 
+        opponentWins, playerWins, gameWinner 
+    } = useGamePVEPlay(currentUser?.addr)
+
 
     useEffect(() => {
         if (gameWinner != 0) {
@@ -33,13 +38,17 @@ export default function PlayWithBot() {
 
     const hide = () => {
         setShowFight(false)
-        setPlayerMove(null)
+        setPlayerMove(PLAYER_MOVE.NONE)
+        setOpponentMove(PLAYER_MOVE.NONE)
     }
 
     const playGame = async(move: PLAYER_MOVE) => {
         await play(move)
         setShowFight(true)
     }
+
+    const isFighting = (showFight && playerMove != PLAYER_MOVE.NONE && opponentMove != PLAYER_MOVE.NONE)
+
 
     const playingMode = (
         <>
@@ -49,7 +58,7 @@ export default function PlayWithBot() {
     )
 
     const fighingMode = (
-        <Fight round={10} playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
+        <Fight playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove as PLAYER_MOVE}  gameStatus={gameStatus} hide={hide} />
     )
 
     const handleClose = async() => {
@@ -70,13 +79,13 @@ export default function PlayWithBot() {
             <Layout>
                 <div className='flex items-center justify-center w-full'>
                     <div className='flex flex-col items-center justify-center w-full text-white'>
-                        { showFight ? fighingMode : playingMode}
+                        { isFighting ? fighingMode : playingMode}
                     </div>
                 </div>
             </Layout>
 
             <ModalWrapper title={"Game Ended"} open={open && !showFight} handleClose={() => toast.error("Cannot close, please create new game")}>
-                <GameEnded handleClose={handleClose} gameWinner={gameWinner} />
+                <GameEnded handleClose={handleClose} init={init} gameWinner={gameWinner} />
             </ModalWrapper>
 
         </>

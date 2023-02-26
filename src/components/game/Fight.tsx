@@ -1,10 +1,9 @@
 import { GAME_STATUS, PLAYER_MOVE } from "@/libs/constants"
 import { gameStatusStr, getMoveStr } from "@/libs/utils";
-import GameButton from "../ui/utils/GameButton";
+import { memo } from "react";
 import OptionCard from "./OptionCard"
 
 interface IProps {
-    round: number;
     playerMove: PLAYER_MOVE;
     opponentMove: PLAYER_MOVE;
     gameStatus: GAME_STATUS;
@@ -14,9 +13,6 @@ interface IProps {
 
 const Fight = ({ playerMove, opponentMove, gameStatus, hide } : IProps) => {
 
-    console.log(opponentMove)
-
-
     return  (
         <div className="text-white flex flex-col justify-between w-full md:max-w-xl">
 
@@ -24,18 +20,13 @@ const Fight = ({ playerMove, opponentMove, gameStatus, hide } : IProps) => {
 
             <div className="flex justify-between">
 
-                <OptionCard aos="slide-up">
-                    {getMoveStr(playerMove)}
-                </OptionCard>
-
+                <OptionCard aos="slide-up" move={playerMove} />
                     
-                <div data-aos="zoom-in" className="text-yellow-500 h-60 font-medium flex justify-center items-center text-5xl">
+                <div data-aos="zoom-in" className="text-yellow-500 h-20 md:h-60 font-medium flex justify-center items-center text-2xl md:text-5xl">
                     VS
                 </div>
 
-                <OptionCard aos="slide-down">
-                    {getMoveStr(Number(opponentMove))}
-                </OptionCard>
+                <OptionCard aos="slide-down" move={Number(opponentMove)} />
 
             </div>
 
@@ -48,4 +39,4 @@ const Fight = ({ playerMove, opponentMove, gameStatus, hide } : IProps) => {
 
 }
 
-export default Fight
+export default memo(Fight)

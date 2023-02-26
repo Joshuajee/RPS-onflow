@@ -8,24 +8,22 @@ import { toast } from "react-toastify"
 interface IProps {
     handleClose: () => void;
     gameWinner: FINAL_GAME_STATUS
+    init: () => void;
 }
 
-const GameEnded = ({handleClose, gameWinner} : IProps) => {
+const GameEnded = ({handleClose, init, gameWinner} : IProps) => {
 
     const newGame = async() => {
     
         try {
-            const id = await endGamePVE(handleClose)
-            console.log(id)
+            await endGamePVE(handleClose)
             toast.success("New Game Created")
-            handleClose()
+            init()
         } catch (e) {
             console.error(e)
             toast.error("Error creating profile")
         }
     }
-
-    const won = "https://assets8.lottiefiles.com/packages/lf20_touohxv0.json"
 
     const lottie = useCallback(() => {
         switch(gameWinner) {

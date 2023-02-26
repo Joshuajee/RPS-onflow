@@ -1,8 +1,7 @@
 import RPSGAME from 0x01
+import RPSToken from 0x03
 
-// This transaction configures a user's account
-// to use the NFT contract by creating a new empty Games,
-// storing it in their account storage, and publishing a capability
+
 transaction {
     prepare(acct: AuthAccount) {
 
@@ -15,8 +14,22 @@ transaction {
         log("Games created for account 2")
 
         // create a public capability for the Games
-        let capability = acct.link<&RPSGAME.Games>(RPSGAME.GamesPublicPath, target: RPSGAME.GamesStoragePath)
+        let capability = acct.link<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath, target: RPSGAME.GamesStoragePath)
 
         log("Capability created")
+
+        // Create a new empty Vault object
+		let vaultA <- RPSToken.createEmptyVault()
+			
+		// Store the vault in the account storage
+		acct.save<@RPSToken.Vault>(<-vaultA, to: RPSToken.VaultStoragePath)
+
+        log("Empty Vault stored")
+
+        // Create a public Receiver capability to the Vault
+		let ReceiverRef = acct.link<&RPSToken.Vault{RPSToken.Receiver, RPSToken.Balance}>(RPSToken.ReceiverPublicPath, target: RPSToken.VaultStoragePath)
+
+        log("References created")
     }
+
 }

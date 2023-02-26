@@ -1,7 +1,7 @@
-//import RPSGAME from "./RPSGAME.cdc"
 import FungibleToken from "./FungibleToken.cdc"
 import MetadataViews from "./utility/MetadataViews.cdc"
 import FungibleTokenMetadataViews from "./FungibleTokenMetadataViews.cdc"
+import RPSGAME from "../RPSGAME.cdc"
 
 pub contract RPSToken: FungibleToken {
 
@@ -163,10 +163,6 @@ pub contract RPSToken: FungibleToken {
         return <-create Vault(balance: 0.0)
     }
 
-    // pub fun createVaultWithToken(token: UFix64): @Vault {
-    //     return <-create Vault(balance: token)
-    // }
-
     pub resource Administrator {
 
         /// Function that creates and returns a new minter resource
@@ -216,6 +212,7 @@ pub contract RPSToken: FungibleToken {
         init(allowedAmount: UFix64) {
             self.allowedAmount = allowedAmount
         }
+    
     }
 
     /// Resource object that token admin accounts can hold to burn tokens.
@@ -235,6 +232,41 @@ pub contract RPSToken: FungibleToken {
             destroy vault
             emit TokensBurned(amount: amount)
         }
+    }
+
+
+    // create game
+    pub fun newGamePVE(move: RPSGAME.GameMove): @RPSGAME.GamePVE {
+
+        let tokens = UFix64(unsafeRandom() % 5)
+
+        let createPVE <- RPSGAME.createPVE(tokens: tokens)
+     
+        createPVE.play(move: move)
+
+        return <-createPVE
+    }
+
+    pub fun claimRewardGamePVE(game: @RPSGAME.GamePVE): @RPSGAME.GamePVE {
+
+        let tokens = game.tokens
+
+        if (game.gameStatus == RPSGAME.FinalGameStatus.won && tokens > 0.0 && !game.claimed) {
+
+            let vault <- create Vault(balance: tokens)
+
+            let myVault = self.account.borrow<&RPSToken.Vault>(from: RPSToken.VaultStoragePath)
+                ?? panic("Could not borrow a reference to the your vault")
+
+            myVault.deposit(from: <- vault.withdraw(amount: tokens))
+
+            game.endGame()
+
+            destroy vault
+        }
+
+        return <- game
+
     }
 
     

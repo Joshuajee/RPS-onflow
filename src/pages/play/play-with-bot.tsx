@@ -13,7 +13,7 @@ import { toast } from 'react-toastify'
 
 export default function PlayWithBot() {
 
-    const { currentUser } = useAuth()
+    const { currentUser, loadProfile } = useAuth()
 
     const [open, setOpen] = useState(false)
 
@@ -25,7 +25,7 @@ export default function PlayWithBot() {
         play, fetchState, init, setOpponentMove,
         round, gameStatus, opponentMove, 
         opponentWins, playerWins, gameWinner 
-    } = useGamePVEPlay(currentUser?.addr)
+    } = useGamePVEPlay(currentUser?.addr, loadProfile)
 
 
     useEffect(() => {

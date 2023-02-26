@@ -68,6 +68,7 @@ pub contract RPSGAME {
         pub var loses: UInt8
         pub var playerMoves: [GameMove] 
         pub var opponentMoves: [GameMove] 
+        pub var claimed: Bool
     }
 
     pub resource interface GameInterfacePrivate {
@@ -77,9 +78,8 @@ pub contract RPSGAME {
         pub fun scissors(move: GameMove): GameState 
         pub fun rules (playerMove: GameMove, opponentMove: GameMove): GameState 
         pub fun getMoveFromInt(move: Int): GameMove
-        //pub let vault: @RPSToken.Vault
         pub let tokens: UFix64
-        //pub fun claimReward (): @RPSToken.Vault
+        pub fun endGame ()
         destroy()
     }
 
@@ -94,10 +94,10 @@ pub contract RPSGAME {
         pub var playerMoves: [GameMove] 
         pub var opponentMoves: [GameMove]
         pub let tokens: UFix64 
-        //pub let vault: @RPSToken.Vault
+        pub var claimed: Bool
         
     
-        init (id: UInt64) {
+        init (id: UInt64, tokens: UFix64) {
             self.id = id
             self.rounds = 0
             self.wins = 0
@@ -106,9 +106,8 @@ pub contract RPSGAME {
             self.playerMoves = []
             self.opponentMoves = []
             self.battleResults = []
-            // Create Vault with random 0 to 5 tokens
-            self.tokens = UFix64(unsafeRandom() % 5)
-            //self.vault <- RPSToken.createVaultWithToken(token: self.tokens)
+            self.tokens = tokens
+            self.claimed = false
         }
 
         pub fun play (move: GameMove): GameStatus {
@@ -155,7 +154,6 @@ pub contract RPSGAME {
             )
 
         }
-
 
         // rock logic
         pub fun rock (move: GameMove): GameState {
@@ -226,14 +224,9 @@ pub contract RPSGAME {
             }
         }
 
-        // pub fun claimReward (): @RPSToken.Vault {
-        //     let temporary <- self.vault.withdraw(amount: self.tokens)
-        //     return <- temporary
-        // }
-
-        // destroy() {
-        //     destroy self.vault
-        // }
+        pub fun endGame () {
+            self.claimed = false
+        }
  
     }
 
@@ -281,9 +274,9 @@ pub contract RPSGAME {
     }
 
     // start game with environment
-    pub fun createPVE(): @GamePVE {
+    pub fun createPVE(tokens: UFix64): @GamePVE {
         // create a new NFT
-        var newGame <- create GamePVE(id: self.idCount)
+        var newGame <- create GamePVE(id: self.idCount, tokens: tokens)
         // change the id so that each ID is unique
         self.idCount = self.idCount + 1
         emit CreatedGamePVE(id: self.idCount)

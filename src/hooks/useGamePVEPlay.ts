@@ -1,10 +1,11 @@
 import getActiveGamePVE from '@/flow/scripts/getActiveGamePVE';
 import newGameWithBot from '@/flow/transactions/newGameWithBot';
+import newGameWithFlow from '@/flow/transactions/newGameWithFlow';
 import playGamePVE from '@/flow/transactions/playGamePVE';
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
 import { useState, useEffect, useCallback } from 'react';
 
-const useGamePVEPlay = (address: string) => {
+const useGamePVEPlay = (address: string, loadProfile: () => void) => {
 
     const [newGame, setNewGame] = useState(true)
 
@@ -18,6 +19,7 @@ const useGamePVEPlay = (address: string) => {
 
 
     const init = useCallback(() => {
+        loadProfile()
         setRound(0)
         setGameStatus(GAME_STATUS.START)
         setPlayerWins(0)
@@ -25,7 +27,7 @@ const useGamePVEPlay = (address: string) => {
         setOpponentMove(PLAYER_MOVE.NONE)
         setGameWinner(FINAL_GAME_STATUS.PLAYING)
         setNewGame(true)
-    }, [])
+    }, [loadProfile])
 
 
     const fetchState = useCallback(async() => {
@@ -35,6 +37,8 @@ const useGamePVEPlay = (address: string) => {
             try {
 
                 const getActiveGame = await getActiveGamePVE(address)
+
+                console.log(getActiveGame)
 
                 if (!getActiveGame) {   
                     init()
@@ -71,7 +75,7 @@ const useGamePVEPlay = (address: string) => {
 
         if (newGame) {
             try  {
-                await newGameWithBot(move, fetchState)
+                await newGameWithFlow(move, fetchState)
             } catch (e) {
                 console.error(e)
             }

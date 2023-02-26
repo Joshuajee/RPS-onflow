@@ -1,4 +1,5 @@
 import RPSGAME from 0x01
+import RPSToken from 0x01
 
 transaction {
 
@@ -9,7 +10,9 @@ transaction {
         let gamesRef = acct.getCapability<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath)
             .borrow()?? panic("Could not borrow receiver reference")
         
-        gamesRef.addPVE(game: <-game!)
+        let rewardedGame = RPSToken.claimRewardGamePVE(game)
+        
+        gamesRef.addPVE(game: <-rewardedGame!)
 
     }
 

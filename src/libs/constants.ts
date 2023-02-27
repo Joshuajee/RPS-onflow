@@ -1,12 +1,15 @@
 export enum LINKS {
     ACHIEVEMENTS =  "/achievements",
     LEADERBOARD = "/leaderboard",
-    MATCH_HISTORY = "/match-history"
+    MATCH_HISTORY = "/match-history",
+    CREATE_MATCH = "/match/create",
+    WAITING = "/match/"
 }
 
 export enum PLAY_ROUTES {
     QUICKGAME =  "/play/quick-game",
     PLAY_PVE = "/play/play-with-bot",
+    PLAY = "/play",
 }
 
 export enum PLAYER_MOVE {

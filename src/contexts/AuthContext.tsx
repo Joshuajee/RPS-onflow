@@ -1,4 +1,5 @@
 import getAccount from "@/flow/scripts/getAccount";
+import getRPSTokenBalance from "@/flow/scripts/getRPSTokenBalance";
 import createProfile from "@/flow/transactions/accountSetUp";
 import * as fcl from "@onflow/fcl";
 import {
@@ -25,6 +26,7 @@ export default function AuthProvider({ children } : IProps) {
   const [checkProfile, setCheckProfile] = useState(false);
   const [userProfile, setProfile] = useState(null);
   const [profileExists, setProfileExists] = useState(false);
+  const [balance, setBalance] = useState(0)
 
   useEffect(() => fcl.currentUser.subscribe(setUser), []);
 
@@ -34,6 +36,8 @@ export default function AuthProvider({ children } : IProps) {
         const profile = await getAccount(currentUser?.addr)
         setProfile(profile ?? null);
         setProfileExists(profile !== null);
+        const balance = await getRPSTokenBalance(currentUser?.addr)
+        setBalance(balance)
       } catch (e) {
         console.error(e)
       }
@@ -66,6 +70,7 @@ export default function AuthProvider({ children } : IProps) {
     currentUser,
     userProfile,
     profileExists,
+    balance,
     logOut,
     logIn,
     signUp,

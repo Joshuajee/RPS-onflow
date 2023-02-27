@@ -8,23 +8,24 @@ const endGamePVE = async (callBack: () => void) => {
   const transactionId = await fcl.mutate({
     cadence: `
       import RPSGAME from ${contract}
+      import RPSToken from ${contract}
 
       transaction {
 
         prepare(acct: AuthAccount) {
-    
-            let game <- acct.load<@RPSGAME.GamePVE>(from: RPSGAME.PlayingBotStoragePath)
-            
-            let gamesRef = acct.getCapability<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath)
-                .borrow()?? panic("Could not borrow receiver reference")
-            
-            gamesRef.addPVE(game: <-game!)
-    
-            log("Game Ended")
+
+          let game <- acct.load<@RPSGAME.GamePVE>(from: RPSGAME.PlayingBotStoragePath)
+        
+          let gamesRef = acct.getCapability<&{RPSGAME.GamesCollectionInterface}>(RPSGAME.GamesPublicPath)
+            .borrow()?? panic("Could not borrow receiver reference")
+          
+          let rewardedGame <- RPSToken.claimRewardGamePVE(game: <- game!, account: acct)
+          
+          gamesRef.addPVE(game: <-rewardedGame!)
     
         }
     
-    }
+      }
     `,
     payer: fcl.authz,
     proposer: fcl.authz,
@@ -41,3 +42,4 @@ const endGamePVE = async (callBack: () => void) => {
 };
 
 export default endGamePVE
+ 

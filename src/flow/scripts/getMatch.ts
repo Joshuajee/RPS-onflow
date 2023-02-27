@@ -1,7 +1,7 @@
 import * as fcl from "@onflow/fcl";
 import { contract } from "@/libs/utils";
 
-const getActiveGamePVE = async (account: string | undefined) => { 
+const getMatch = async (account: string | undefined) => { 
 
     if (!account) return
 
@@ -9,13 +9,12 @@ const getActiveGamePVE = async (account: string | undefined) => {
         cadence: `
         import RPSGAME from ${contract}
 
-        pub fun main(address: Address): &RPSGAME.GamePVE {
-
+        pub fun main(address: Address): &RPSGAME.Match {
 
             let gameAccount = getAccount(address)
            
             // Get the public capability from the public path of the owner's account
-            let gameCapability = gameAccount.getCapability<&RPSGAME.GamePVE>(RPSGAME.PlayingBotPublicPath)
+            let gameCapability = gameAccount.getCapability<&RPSGAME.Match>(RPSGAME.MatchPublicPath)
             // borrow a reference for the capability
             log(gameCapability)
             let gameReference = gameCapability.borrow() ?? panic("Could not borrow a reference to the games capability")
@@ -30,4 +29,4 @@ const getActiveGamePVE = async (account: string | undefined) => {
 
 }
 
-export default getActiveGamePVE
+export default getMatch

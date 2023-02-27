@@ -4,11 +4,13 @@ import { LINKS } from "@/libs/constants"
 import ConnectionBtn from "../utils/ConnectionBtn"
 import { useScroll } from "@/hooks/window"
 import { useAuth } from "@/contexts/AuthContext"
+import { RiCopperCoinLine } from 'react-icons/ri'
+import { useRouter } from "next/router"
 
 
 const Navbar = () => {
 
-    const { userProfile } = useAuth()
+    const { userProfile, balance } = useAuth()
 
     const scrollPosition = useScroll()
 
@@ -20,15 +22,28 @@ const Navbar = () => {
                 <Link href={"/"} className="pt-2 md:pt-0 block title-font text-2xl md:text-3xl font-bold">
                     RPSOF
                 </Link>
-                <div className="flex justify-evenly">
+
+                <div className="sm:hidden"><ConnectionBtn /></div>
+
+                <div className="flex justify-evenly items-center">
+
+                    <div className="px-2 flex"> 
+                        <RiCopperCoinLine size={24} color="gold" /> 
+                        <p className="ml-2"> {balance || 0} </p>
+                    </div>
 
                     <p className="px-2">Wins: {userProfile?.won || 0}</p>
 
                     <p className="px-2">Loses: {userProfile?.lost || 0} </p>
 
+                    <div className="hidden sm:block">
+                        <ConnectionBtn />
+                    </div>
+
                 </div>
-                <ConnectionBtn />
+           
             </div>
+            
         </header>
     )
 }

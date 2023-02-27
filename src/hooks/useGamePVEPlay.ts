@@ -1,12 +1,10 @@
-import * as fcl from "@onflow/fcl";
 import getActiveGamePVE from '@/flow/scripts/getActiveGamePVE';
-import newGameWithBot from '@/flow/transactions/newGameWithBot';
+import newGameWithFlow from '@/flow/transactions/newGameWithFlow';
 import playGamePVE from '@/flow/transactions/playGamePVE';
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
-import { rules } from '@/libs/gamePlay';
 import { useState, useEffect, useCallback } from 'react';
 
-const useGamePVEPlay = (address: string) => {
+const useGamePVEPlay = (address: string, loadProfile: () => void) => {
 
     const [newGame, setNewGame] = useState(true)
 
@@ -15,11 +13,24 @@ const useGamePVEPlay = (address: string) => {
     const [playerWins, setPlayerWins] = useState(0)
     const [opponentWins, setOpponentWins] = useState(0)
     const [opponentMove, setOpponentMove] = useState(PLAYER_MOVE.NONE)
+    const [tokens, setTokens] = useState(0)
 
     const [gameWinner, setGameWinner] = useState(FINAL_GAME_STATUS.PLAYING)
 
 
-    const fetchState = useCallback(async () => {
+    const init = useCallback(() => {
+        loadProfile()
+        setRound(0)
+        setGameStatus(GAME_STATUS.START)
+        setPlayerWins(0)
+        setOpponentWins(0)
+        setOpponentMove(PLAYER_MOVE.NONE)
+        setGameWinner(FINAL_GAME_STATUS.PLAYING)
+        setNewGame(true)
+    }, [loadProfile])
+
+
+    const fetchState = useCallback(async() => {
 
         if (address) {
 
@@ -27,16 +38,8 @@ const useGamePVEPlay = (address: string) => {
 
                 const getActiveGame = await getActiveGamePVE(address)
 
-                console.log(getActiveGame)
-
                 if (!getActiveGame) {   
-                    setRound(0)
-                    setGameStatus(GAME_STATUS.START)
-                    setPlayerWins(0)
-                    setOpponentWins(0)
-                    setOpponentMove(PLAYER_MOVE.NONE)
-                    setGameWinner(FINAL_GAME_STATUS.PLAYING)
-                    setNewGame(true)
+                    init()
                 } else {
                     
                     const opponentMove = getActiveGame?.opponentMoves[getActiveGame?.opponentMoves.length - 1]?.rawValue
@@ -44,32 +47,34 @@ const useGamePVEPlay = (address: string) => {
                     const battleResults = getActiveGame?.battleResults
                     const battleResult = battleResults[battleResults.length - 1]?.rawValue
 
-                    console.log(battleResult)
-                    
+
                     setRound(getActiveGame?.rounds)
                     setGameStatus(battleResult)
                     setPlayerWins(getActiveGame?.wins)
                     setOpponentWins(getActiveGame?.loses)
                     setOpponentMove(opponentMove)
                     setGameWinner(getActiveGame?.gameStatus?.rawValue)
+                    setTokens(getActiveGame?.tokens)
 
                     setNewGame(false)
+
                 }
 
             } catch (e) {
                 console.error(e)
             }
+
             
         }
 
-    }, [address])
+    }, [address, init])
 
 
     const play = useCallback (async(move: PLAYER_MOVE) => {
 
         if (newGame) {
             try  {
-                await newGameWithBot(move, fetchState)
+                await newGameWithFlow(move, fetchState)
             } catch (e) {
                 console.error(e)
             }
@@ -90,12 +95,15 @@ const useGamePVEPlay = (address: string) => {
     useEffect(() => {
         if (playerWins >= 2) {
             setGameWinner(FINAL_GAME_STATUS.PLAYER_WON)
+            setNewGame(true)
         } else if (opponentWins >= 2 ) {
             setGameWinner(FINAL_GAME_STATUS.OPPONENT_WON)
+            setNewGame(true)
         } 
     }, [playerWins, opponentWins])
 
-    return { round, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState }
+
+    return { round, tokens, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState, init, setOpponentMove }
 }
 
 

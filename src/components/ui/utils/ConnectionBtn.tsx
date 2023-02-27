@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
 import { SlLogout } from 'react-icons/sl'
 import { RiLogoutBoxRLine } from 'react-icons/ri'
+import { useRouter } from 'next/router'
 
 
 
@@ -10,6 +11,8 @@ const ConnectionBtn = () => {
     const [show, setShow] = useState(false)
 
     const { currentUser, logOut, logIn } = useAuth()
+
+    const router = useRouter()
 
     const notAuthenticated = (
         <button 
@@ -24,7 +27,7 @@ const ConnectionBtn = () => {
             <div onClick={() => setShow(!show)} className='px-6 p-2 hover:cursor-pointer cursor-pointer rounded-3xl border-white border-[1px]'>
                 <span> {currentUser.addr} </span>
             </div>
-            <button className='ml-2 p-2 hover:cursor-pointer cursor-pointer rounded-3xl border-white border-[1px]' onClick={logOut}> <RiLogoutBoxRLine /> </button> 
+            { !router?.asPath?.includes("play") && <button className='ml-2 p-2 hover:cursor-pointer cursor-pointer rounded-3xl border-white border-[1px]' onClick={logOut}> <RiLogoutBoxRLine /> </button> }
         </div>
     )
 

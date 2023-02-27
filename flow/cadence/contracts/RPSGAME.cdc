@@ -1,13 +1,18 @@
 pub contract RPSGAME {
 
     // Events
+    pub event CreatedGamePVE(id: UInt64)
 
-    pub event CreatedGamePVE(id:UInt64)
+    // Match Events
+    pub event CreateMatch(id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64)
+    pub event JoinMatch(id: UInt64, address: Address)
 
     pub let GamesStoragePath: StoragePath
     pub let GamesPublicPath: PublicPath
     pub let PlayingBotStoragePath: StoragePath
     pub let PlayingBotPublicPath: PublicPath
+    pub let MatchStoragePath: StoragePath
+    pub let MatchPublicPath: PublicPath
 
     pub var idCount: UInt64
 
@@ -59,7 +64,6 @@ pub contract RPSGAME {
         pub fun addPVE(game: @GamePVE)
         pub fun getIDs(): [UInt64]
         pub fun idExists(id: UInt64): Bool
-        pub fun getGamePVE(id: UInt64): @GamePVE
     }
 
     pub resource interface GameInterface {
@@ -70,13 +74,22 @@ pub contract RPSGAME {
         pub var loses: UInt8
         pub var playerMoves: [GameMove] 
         pub var opponentMoves: [GameMove] 
+        pub var claimed: Bool
+    }
+
+    pub resource interface GameInterfacePrivate {
         pub fun play (move: GameMove): GameStatus
         pub fun rock (move: GameMove): GameState 
         pub fun paper(move: GameMove): GameState 
         pub fun scissors(move: GameMove): GameState 
+        pub fun rules (playerMove: GameMove, opponentMove: GameMove): GameState 
+        pub fun getMoveFromInt(move: Int): GameMove
+        pub let tokens: UFix64
+        pub fun endGame ()
+        destroy()
     }
 
-    pub resource GamePVE: GameInterface {
+    pub resource GamePVE: GameInterface, GameInterfacePrivate {
     
         pub let id: UInt64
         pub let battleResults: [GameState]
@@ -85,9 +98,12 @@ pub contract RPSGAME {
         pub var loses: UInt8
         pub var gameStatus: FinalGameStatus
         pub var playerMoves: [GameMove] 
-        pub var opponentMoves: [GameMove] 
+        pub var opponentMoves: [GameMove]
+        pub let tokens: UFix64 
+        pub var claimed: Bool
+        
     
-        init (id: UInt64) {
+        init (id: UInt64, tokens: UFix64) {
             self.id = id
             self.rounds = 0
             self.wins = 0
@@ -96,19 +112,14 @@ pub contract RPSGAME {
             self.playerMoves = []
             self.opponentMoves = []
             self.battleResults = []
+            self.tokens = tokens
+            self.claimed = false
         }
 
         pub fun play (move: GameMove): GameStatus {
-            
-            if (self.gameStatus != FinalGameStatus.playing) { 
-                return GameStatus(
-                    playerMove: GameMove.rock, 
-                    opponentMove: GameMove.rock, 
-                    wins: self.wins, 
-                    loses: self.loses, 
-                    round: self.rounds,
-                    gameStatus: self.gameStatus
-                )
+
+            pre {
+                self.gameStatus == FinalGameStatus.playing: "Game Over"
             }
 
             self.rounds = self.rounds + 1
@@ -139,10 +150,6 @@ pub contract RPSGAME {
                     log("draw")
             }
 
-            if (self.gameStatus != FinalGameStatus.playing) { 
-
-            }
-
             return GameStatus(
                 playerMove: move, 
                 opponentMove: botMove, 
@@ -153,7 +160,6 @@ pub contract RPSGAME {
             )
 
         }
-
 
         // rock logic
         pub fun rock (move: GameMove): GameState {
@@ -224,6 +230,10 @@ pub contract RPSGAME {
             }
         }
 
+        pub fun endGame () {
+            self.claimed = false
+        }
+ 
     }
 
     pub resource Games: GamesCollectionInterface {
@@ -231,7 +241,6 @@ pub contract RPSGAME {
         pub var games: @{UInt64: GamePVE}
         pub var won: UInt64
         pub var lost: UInt64
-
         pub let name: String
 
         init (name: String) {
@@ -249,10 +258,6 @@ pub contract RPSGAME {
             return self.games.keys
         }
 
-        destroy() {
-            destroy self.games
-        }
-
         // add game to games collection
         pub fun addPVE(game: @GamePVE) {
             if (game.gameStatus == FinalGameStatus.won) {
@@ -263,12 +268,38 @@ pub contract RPSGAME {
             self.games[game.id] <-! game
         }
 
-        // get game and move to context
-        pub fun getGamePVE(id: UInt64): @GamePVE {
-            let game <- self.games.remove(key: id)
-                ?? panic("Cannot get the specified game id")
-            return <-game
+        destroy() {
+            destroy self.games
         }
+
+    }
+
+    pub resource Match {
+
+        pub let id: UInt64
+        pub let host: Address
+        pub var opponent: Address
+        pub var hostStake: UFix64
+        pub var opponentStake: UFix64
+        pub var opponentJoined: Bool
+
+        init (id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64) {
+            self.id = id
+            self.host = host
+            self.opponent = host
+            self.hostStake = hostStake
+            self.opponentStake = opponentStake
+            self.opponentJoined = false
+        }
+
+        pub fun join(opponent: Address, stake: UFix64) {
+            self.opponent = opponent
+            self.opponentStake = stake
+            self.opponentJoined = true
+            log("join")
+            emit JoinMatch(id: self.id, address: opponent)
+        }
+
 
     }
 
@@ -278,12 +309,23 @@ pub contract RPSGAME {
     }
 
     // start game with environment
-    pub fun createPVE(): @GamePVE {
+    pub fun createPVE(tokens: UFix64): @GamePVE {
         // create a new NFT
-        var newGame <- create GamePVE(id: self.idCount)
+        var newGame <- create GamePVE(id: self.idCount, tokens: tokens)
+        // change the id so that each ID is unique
+        emit CreatedGamePVE(id: self.idCount)
+        self.idCount = self.idCount + 1
+        return <-newGame
+    }
+
+    // start game with environment
+    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @Match {
+        let id = self.idCount
+        // create a new NFT
+        var newGame <- create Match(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
         // change the id so that each ID is unique
         self.idCount = self.idCount + 1
-        emit CreatedGamePVE(id: self.idCount)
+        emit CreateMatch(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
         return <-newGame
     }
 
@@ -292,9 +334,10 @@ pub contract RPSGAME {
         self.GamesPublicPath = /public/games
         self.PlayingBotStoragePath = /storage/playingbot
         self.PlayingBotPublicPath = /public/playingbot
+        self.MatchStoragePath = /storage/match
+        self.MatchPublicPath = /public/match
         self.idCount = 0
 	}
-
 
 }
  

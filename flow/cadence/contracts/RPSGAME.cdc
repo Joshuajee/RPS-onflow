@@ -1,12 +1,18 @@
 pub contract RPSGAME {
 
     // Events
-    pub event CreatedGamePVE(id:UInt64)
+    pub event CreatedGamePVE(id: UInt64)
+
+    // Match Events
+    pub event CreateMatch(id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64)
+    pub event JoinMatch(id: UInt64, address: Address)
 
     pub let GamesStoragePath: StoragePath
     pub let GamesPublicPath: PublicPath
     pub let PlayingBotStoragePath: StoragePath
     pub let PlayingBotPublicPath: PublicPath
+    pub let MatchStoragePath: StoragePath
+    pub let MatchPublicPath: PublicPath
 
     pub var idCount: UInt64
 
@@ -268,6 +274,35 @@ pub contract RPSGAME {
 
     }
 
+    pub resource Match {
+
+        pub let id: UInt64
+        pub let host: Address
+        pub var opponent: Address
+        pub var hostStake: UFix64
+        pub var opponentStake: UFix64
+        pub var opponentJoined: Bool
+
+        init (id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64) {
+            self.id = id
+            self.host = host
+            self.opponent = host
+            self.hostStake = hostStake
+            self.opponentStake = opponentStake
+            self.opponentJoined = false
+        }
+
+        pub fun join(opponent: Address, stake: UFix64) {
+            self.opponent = opponent
+            self.opponentStake = stake
+            self.opponentJoined = true
+            log("join")
+            emit JoinMatch(id: self.id, address: opponent)
+        }
+
+
+    }
+
     // creates a new empty Game resource and returns it
     pub fun createEmptyGame(name: String): @Games {
         return <- create Games(name: name)
@@ -278,8 +313,19 @@ pub contract RPSGAME {
         // create a new NFT
         var newGame <- create GamePVE(id: self.idCount, tokens: tokens)
         // change the id so that each ID is unique
-        self.idCount = self.idCount + 1
         emit CreatedGamePVE(id: self.idCount)
+        self.idCount = self.idCount + 1
+        return <-newGame
+    }
+
+    // start game with environment
+    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @Match {
+        let id = self.idCount
+        // create a new NFT
+        var newGame <- create Match(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
+        // change the id so that each ID is unique
+        self.idCount = self.idCount + 1
+        emit CreateMatch(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
         return <-newGame
     }
 
@@ -288,9 +334,10 @@ pub contract RPSGAME {
         self.GamesPublicPath = /public/games
         self.PlayingBotStoragePath = /storage/playingbot
         self.PlayingBotPublicPath = /public/playingbot
+        self.MatchStoragePath = /storage/match
+        self.MatchPublicPath = /public/match
         self.idCount = 0
 	}
-
 
 }
  

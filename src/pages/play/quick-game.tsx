@@ -41,7 +41,7 @@ export default function QuickGame() {
     )
 
     const fighingMode = (
-        <Fight round={10} playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
+        <Fight playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
     )
 
     return (
@@ -54,11 +54,9 @@ export default function QuickGame() {
             </Head>
 
             <Layout>
-
                 <div className='flex flex-col items-center justify-center w-full text-white'>
                     { showFight ? fighingMode : playingMode}
                 </div>
-        
             </Layout>
 
         </>

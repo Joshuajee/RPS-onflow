@@ -45,3 +45,4 @@ export const getMoveStr = (move: PLAYER_MOVE) : string => {
 
 
 export const contract = process.env.NEXT_PUBLIC_CONTRACT_ACCT 
+export const contractName = "RPSGAME"

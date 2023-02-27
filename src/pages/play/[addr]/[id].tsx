@@ -11,7 +11,7 @@ import ModalWrapper from '@/components/modals/ModalWrapper'
 import GameEnded from '@/components/modals/GameEnded'
 import { toast } from 'react-toastify'
 
-export default function PlayWithBot() {
+export default function PlayWithFriend() {
 
     const { currentUser, loadProfile } = useAuth()
 

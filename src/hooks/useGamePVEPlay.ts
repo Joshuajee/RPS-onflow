@@ -1,5 +1,4 @@
 import getActiveGamePVE from '@/flow/scripts/getActiveGamePVE';
-import newGameWithBot from '@/flow/transactions/newGameWithBot';
 import newGameWithFlow from '@/flow/transactions/newGameWithFlow';
 import playGamePVE from '@/flow/transactions/playGamePVE';
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
@@ -14,6 +13,7 @@ const useGamePVEPlay = (address: string, loadProfile: () => void) => {
     const [playerWins, setPlayerWins] = useState(0)
     const [opponentWins, setOpponentWins] = useState(0)
     const [opponentMove, setOpponentMove] = useState(PLAYER_MOVE.NONE)
+    const [tokens, setTokens] = useState(0)
 
     const [gameWinner, setGameWinner] = useState(FINAL_GAME_STATUS.PLAYING)
 
@@ -38,8 +38,6 @@ const useGamePVEPlay = (address: string, loadProfile: () => void) => {
 
                 const getActiveGame = await getActiveGamePVE(address)
 
-                console.log(getActiveGame)
-
                 if (!getActiveGame) {   
                     init()
                 } else {
@@ -56,6 +54,7 @@ const useGamePVEPlay = (address: string, loadProfile: () => void) => {
                     setOpponentWins(getActiveGame?.loses)
                     setOpponentMove(opponentMove)
                     setGameWinner(getActiveGame?.gameStatus?.rawValue)
+                    setTokens(getActiveGame?.tokens)
 
                     setNewGame(false)
 
@@ -104,7 +103,7 @@ const useGamePVEPlay = (address: string, loadProfile: () => void) => {
     }, [playerWins, opponentWins])
 
 
-    return { round, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState, init, setOpponentMove }
+    return { round, tokens, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState, init, setOpponentMove }
 }
 
 

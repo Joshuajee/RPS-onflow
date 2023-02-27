@@ -1,17 +1,18 @@
-import createProfile from "@/flow/transactions/accountSetUp"
 import endGamePVE from "@/flow/transactions/endGamePVE";
 import { FINAL_GAME_STATUS } from "@/libs/constants";
 import { memo, useCallback, useEffect, useState } from "react"
 import { toast } from "react-toastify"
+import RPSToken from "../ui/RPSToken";
 
 
 interface IProps {
-    handleClose: () => void;
     gameWinner: FINAL_GAME_STATUS
+    reward?: number
     init: () => void;
+    handleClose: () => void;
 }
 
-const GameEnded = ({handleClose, init, gameWinner} : IProps) => {
+const GameEnded = ({gameWinner, reward, handleClose, init} : IProps) => {
 
     const newGame = async() => {
     
@@ -62,11 +63,11 @@ const GameEnded = ({handleClose, init, gameWinner} : IProps) => {
                     background="transparent"  
                     speed="1"  autoplay />
 
-
             </div>
 
+
             <button onClick={newGame} className={`bg-blue-900 hover:bg-blue-800 py-3 text-white rounded-lg`}>
-                New Game
+                { (reward && gameWinner === FINAL_GAME_STATUS.PLAYER_WON) ? <div className="flex justify-center">Claim Reward <RPSToken amount={reward} /> </div>   : "New Game" }
             </button>
 
         </div>

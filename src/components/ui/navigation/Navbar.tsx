@@ -5,6 +5,7 @@ import ConnectionBtn from "../utils/ConnectionBtn"
 import { useScroll } from "@/hooks/window"
 import { useAuth } from "@/contexts/AuthContext"
 import { RiCopperCoinLine } from 'react-icons/ri'
+import { useRouter } from "next/router"
 
 
 const Navbar = () => {
@@ -42,6 +43,7 @@ const Navbar = () => {
                 </div>
            
             </div>
+            
         </header>
     )
 }

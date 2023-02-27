@@ -63,7 +63,9 @@ export default function Home() {
 
           {/* <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton> */}
 
-          <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='yellow'>Match History</GameButton>
+          <GameButton onClick={() => router.push(LINKS.CREATE_MATCH)} color='yellow'>Play With Friends</GameButton>
+
+          {/* <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='yellow'>Match History</GameButton> */}
           
         </div>
 

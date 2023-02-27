@@ -247,7 +247,20 @@ pub contract RPSToken: FungibleToken {
         return <-createPVE
     }
 
-    pub fun claimRewardGamePVE(game: @RPSGAME.GamePVE): @RPSGAME.GamePVE {
+    // create match 
+    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @RPSGAME.Match {
+        
+        //let tokens = UFix64(unsafeRandom() % 15)
+
+        let match <- RPSGAME.createMatch(host: host, hostStake: hostStake, opponentStake: opponentStake)
+
+
+        
+
+        return  <- match
+    }
+
+    pub fun claimRewardGamePVE(game: @RPSGAME.GamePVE, account: AuthAccount): @RPSGAME.GamePVE {
 
         let tokens = game.tokens
 
@@ -255,7 +268,7 @@ pub contract RPSToken: FungibleToken {
 
             let vault <- create Vault(balance: tokens)
 
-            let myVault = self.account.borrow<&RPSToken.Vault>(from: RPSToken.VaultStoragePath)
+            let myVault = account.borrow<&RPSToken.Vault>(from: RPSToken.VaultStoragePath)
                 ?? panic("Could not borrow a reference to the your vault")
 
             myVault.deposit(from: <- vault.withdraw(amount: tokens))

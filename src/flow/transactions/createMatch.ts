@@ -4,7 +4,7 @@ import * as fcl from "@onflow/fcl";
 
 const createMatch = async (details: GamePVPDetails, callBack: () => void) => {
 
-  const { host, opponent, hostStake, opponentStake } = details
+  const { host, hostStake } = details
 
   const transactionId = await fcl.mutate({
     cadence: `
@@ -15,7 +15,7 @@ const createMatch = async (details: GamePVPDetails, callBack: () => void) => {
 
         prepare(acct: AuthAccount) {
 
-          let id = RPSToken.createMatch(host: ${host}, hostStake: ${hostStake.toFixed(4)}, opponentStake: ${opponentStake.toFixed(4)})
+          let id = RPSToken.createMatch(host: ${host}, stake: ${hostStake.toFixed(4)})
 
           let match <- RPSGAME.createGameHost(matchId: id, host: ${host})
 

@@ -12,12 +12,14 @@ import { useCallback, useEffect, useState } from 'react'
 import createMatch from '@/flow/transactions/createMatch'
 import getMatch from '@/flow/scripts/getMatch'
 import { contract } from '@/libs/utils'
+import StakeForm from '@/components/modals/StakeForm'
 
 export default function CreateMatch() {
 
   const router = useRouter()
 
   const [open, setOpen] = useState(false)
+  const [openStake, setOpenStake] = useState(false)
 
   const { currentUser, userProfile } = useAuth()
 
@@ -51,16 +53,6 @@ export default function CreateMatch() {
   }, [currentUser?.addr, router])
 
 
-  const PVE = async () => {
-    if (pleaseConnect()) return
-    try {
-      await createMatch(details, fetchMatch)
-    } catch (e) {
-      toast.error("An error occurred")
-      console.error(e)
-    }
-  }
-
   const pleaseConnect = (open: boolean = false) => {
     if (currentUser?.loggedIn) {
       if (!userProfile) {
@@ -75,6 +67,10 @@ export default function CreateMatch() {
 
   const handleClose = () => {
     setOpen(false)
+  }
+
+  const handleCloseStake = () => {
+    setOpenStake(false)
   }
 
   useEffect(() => {
@@ -95,14 +91,14 @@ export default function CreateMatch() {
 
   return (
     <>
-    
+
       <Layout>
 
         <div data-aos="fade-up" className='flex flex-grow flex-col justify-center items-center text-white w-full'>
 
           <GameButton onClick={quickGame} color='blue'>Friendly</GameButton>
 
-          <GameButton onClick={PVE} color={'red'}>Stake some coins</GameButton>
+          <GameButton onClick={() => toast.success("Comming soon")} color={'red'}>Stake some coins</GameButton>
 
         </div>
 
@@ -110,6 +106,10 @@ export default function CreateMatch() {
 
       <ModalWrapper title={"Create Account"} open={open} handleClose={handleClose}>
         <CreateProfileForm handleClose={handleClose} />
+      </ModalWrapper>
+
+      <ModalWrapper title={"Make Bet"} open={openStake} handleClose={handleCloseStake}>
+        <StakeForm handleClose={handleCloseStake} />
       </ModalWrapper>
 
     </>

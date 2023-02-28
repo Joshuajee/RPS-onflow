@@ -4,7 +4,7 @@ pub contract RPSGAME {
     pub event CreatedGamePVE(id: UInt64)
 
     // Match Events
-    pub event CreateMatch(id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64)
+    pub event CreateMatch(id: UInt64, host: Address, stake: UFix64)
     pub event JoinMatch(id: UInt64, address: Address)
     pub event CreatedGamePVP(id: UInt64, address: Address)
 
@@ -253,8 +253,7 @@ pub contract RPSGAME {
         pub let id: UInt64
         pub let host: Address
         pub var opponent: Address
-        pub var hostStake: UFix64
-        pub var opponentStake: UFix64
+        pub var stake: UFix64
         pub var opponentJoined: Bool
         pub let battleResults: [GameState]
         pub var rounds: UInt8
@@ -267,12 +266,11 @@ pub contract RPSGAME {
         pub var playerMove: GameMove
         pub var opponentMove: GameMove
 
-        init (id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64) {
+        init (id: UInt64, host: Address, stake: UFix64) {
             self.id = id
             self.host = host
             self.opponent = host
-            self.hostStake = hostStake
-            self.opponentStake = opponentStake
+            self.stake = stake
             self.opponentJoined = false
             self.rounds = 0
             self.wins = 0
@@ -287,9 +285,8 @@ pub contract RPSGAME {
             self.claimed = false
         }
 
-        pub fun join(opponent: Address, stake: UFix64) {
+        pub fun join(opponent: Address) {
             self.opponent = opponent
-            self.opponentStake = stake
             self.opponentJoined = true
             emit JoinMatch(id: self.id, address: opponent)
         }
@@ -491,7 +488,7 @@ pub contract RPSGAME {
         pub fun join (match: &Match, opponent: Address, stake: UFix64) {
             self.opponent = opponent
             self.opponentJoined = true
-            match.join(opponent: opponent, stake: stake)
+            match.join(opponent: opponent)
         }
     }
 
@@ -528,7 +525,6 @@ pub contract RPSGAME {
 
     }
 
-
     // creates a new empty Game resource and returns it
     pub fun createEmptyGame(name: String): @Games {
         return <- create Games(name: name)
@@ -545,22 +541,18 @@ pub contract RPSGAME {
     }
 
     // create match
-    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @Match {
+    pub fun createMatch(host: Address, stake: UFix64): @Match {
         let id = self.idCount
         // create a new NFT
-        var newGame <- create Match(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
+        var newGame <- create Match(id: id, host: host, stake: stake)
         // change the id so that each ID is unique
         self.idCount = self.idCount + 1
-        emit CreateMatch(id: id, host: host, hostStake: hostStake, opponentStake: opponentStake)
+        emit CreateMatch(id: id, host: host, stake: stake)
         return <-newGame
     }
 
     pub fun createGameHost(matchId: UInt64, host: Address): @PVPGame {
         return  <- create PVPGame(matchId: matchId, host: host)
-    }
-
-    pub fun dynamicStoragePath (path: StoragePath): StoragePath {
-        return path
     }
 
     init() {

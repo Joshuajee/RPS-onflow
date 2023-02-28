@@ -30,27 +30,8 @@ export default function CreateMatch() {
   const [link, setLink] = useState("")
 
 
-  const { currentUser, userProfile } = useAuth()
+  const { currentUser } = useAuth()
 
-
-  console.log(match)
-
-
-  const pleaseConnect = () => {
-    if (currentUser?.loggedIn) {
-      if (!userProfile) {
-        setOpen(true)
-        return true
-      }
-      return false
-    }
-    toast.error("Please connect your wallet to proceed")
-    return true
-  }
-
-  const handleClose = () => {
-    setOpen(false)
-  }
 
   const fetchMatch = useCallback(async() => {
     try {

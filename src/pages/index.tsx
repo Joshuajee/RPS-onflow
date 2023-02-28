@@ -64,7 +64,7 @@ export default function Home() {
 
           <GameButton onClick={PVE} color={'red'}>Play With Flow</GameButton>
 
-          <GameButton onClick={PVP} color='yellow'>Play With Friends</GameButton>
+          {/* <GameButton onClick={PVP} color='yellow'>Play With Friends</GameButton> */}
 
         </div>
 

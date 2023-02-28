@@ -254,9 +254,6 @@ pub contract RPSToken: FungibleToken {
 
         let match <- RPSGAME.createMatch(host: host, hostStake: hostStake, opponentStake: opponentStake)
 
-
-        
-
         return  <- match
     }
 

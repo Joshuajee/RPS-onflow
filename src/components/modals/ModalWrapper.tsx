@@ -13,9 +13,9 @@ const ModalWrapper = ({title, open, handleClose, children}: IProps) => {
     if (!open) return <React.Fragment></React.Fragment>
 
     return (
-        <div className="fixed top-0 left-0 h-screen w-screen z-10">
+        <div className="absolute top-0 left-0 h-screen w-screen z-10">
 
-            <div className="fixed h-screen w-screen bg-slate-800 opacity-70"></div>
+            <div className="fixed top-0 left-0 h-screen w-screen bg-slate-800 opacity-70"></div>
 
             <div className="fixed flex justify-center items-center h-screen w-screen">
 

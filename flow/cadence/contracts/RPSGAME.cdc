@@ -6,6 +6,7 @@ pub contract RPSGAME {
     // Match Events
     pub event CreateMatch(id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64)
     pub event JoinMatch(id: UInt64, address: Address)
+    pub event CreatedGamePVP(id: UInt64, address: Address)
 
     pub let GamesStoragePath: StoragePath
     pub let GamesPublicPath: PublicPath
@@ -13,6 +14,8 @@ pub contract RPSGAME {
     pub let PlayingBotPublicPath: PublicPath
     pub let MatchStoragePath: StoragePath
     pub let MatchPublicPath: PublicPath
+    pub let PlayingHumanStoragePath: StoragePath
+    pub let PlayingHumanPublicPath: PublicPath
 
     pub var idCount: UInt64
 
@@ -34,6 +37,7 @@ pub contract RPSGAME {
         pub case rock
         pub case paper
         pub case scissors
+        pub case none
     }
 
     pub enum FinalGameStatus: UInt8 {
@@ -86,9 +90,14 @@ pub contract RPSGAME {
         pub fun getMoveFromInt(move: Int): GameMove
         pub let tokens: UFix64
         pub fun endGame ()
-        destroy()
     }
 
+
+    pub resource interface GameMatchInterface {
+        pub fun opponentPlay(move: GameMove)
+    }
+
+    // player vs environment
     pub resource GamePVE: GameInterface, GameInterfacePrivate {
     
         pub let id: UInt64
@@ -236,6 +245,77 @@ pub contract RPSGAME {
  
     }
 
+
+    pub resource Match: GameInterface, GameMatchInterface {
+
+        pub let id: UInt64
+        pub let host: Address
+        pub var opponent: Address
+        pub var hostStake: UFix64
+        pub var opponentStake: UFix64
+        pub var opponentJoined: Bool
+        pub let battleResults: [GameState]
+        pub var rounds: UInt8
+        pub var wins: UInt8
+        pub var loses: UInt8
+        pub var gameStatus: FinalGameStatus
+        pub var playerMoves: [GameMove] 
+        pub var opponentMoves: [GameMove]
+        pub var claimed: Bool
+        pub var playerMove: GameMove
+        pub var opponentMove: GameMove
+
+        init (id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64) {
+            self.id = id
+            self.host = host
+            self.opponent = host
+            self.hostStake = hostStake
+            self.opponentStake = opponentStake
+            self.opponentJoined = false
+            self.rounds = 0
+            self.wins = 0
+            self.loses = 0
+            self.gameStatus = FinalGameStatus.playing
+            
+            self.playerMoves = []
+            self.playerMove = GameMove.none
+            self.opponentMove = GameMove.none
+            self.opponentMoves = []
+            self.battleResults = []
+            self.claimed = false
+        }
+
+        pub fun join(opponent: Address, stake: UFix64) {
+            self.opponent = opponent
+            self.opponentStake = stake
+            self.opponentJoined = true
+            emit JoinMatch(id: self.id, address: opponent)
+        }
+
+        pub fun play (move: GameMove) {
+
+            pre {
+                self.gameStatus == FinalGameStatus.playing: "Game Over"
+                self.playerMove == GameMove.none: "Not your turn"
+            }
+
+            self.playerMove = move
+        }
+
+        pub fun opponentPlay (move: GameMove) {
+
+            pre {
+                self.gameStatus == FinalGameStatus.playing: "Game Over"
+                self.opponentMove == GameMove.none: "Not your turn"
+            }
+
+            self.opponentMove = move
+
+        }
+
+
+    }
+
     pub resource Games: GamesCollectionInterface {
 
         pub var games: @{UInt64: GamePVE}
@@ -274,34 +354,6 @@ pub contract RPSGAME {
 
     }
 
-    pub resource Match {
-
-        pub let id: UInt64
-        pub let host: Address
-        pub var opponent: Address
-        pub var hostStake: UFix64
-        pub var opponentStake: UFix64
-        pub var opponentJoined: Bool
-
-        init (id: UInt64, host: Address, hostStake: UFix64, opponentStake: UFix64) {
-            self.id = id
-            self.host = host
-            self.opponent = host
-            self.hostStake = hostStake
-            self.opponentStake = opponentStake
-            self.opponentJoined = false
-        }
-
-        pub fun join(opponent: Address, stake: UFix64) {
-            self.opponent = opponent
-            self.opponentStake = stake
-            self.opponentJoined = true
-            log("join")
-            emit JoinMatch(id: self.id, address: opponent)
-        }
-
-
-    }
 
     // creates a new empty Game resource and returns it
     pub fun createEmptyGame(name: String): @Games {
@@ -318,7 +370,7 @@ pub contract RPSGAME {
         return <-newGame
     }
 
-    // start game with environment
+    // create match
     pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @Match {
         let id = self.idCount
         // create a new NFT
@@ -329,6 +381,10 @@ pub contract RPSGAME {
         return <-newGame
     }
 
+    pub fun dynamicStoragePath (path: StoragePath): StoragePath {
+        return path
+    }
+
     init() {
         self.GamesStoragePath = /storage/games
         self.GamesPublicPath = /public/games
@@ -336,6 +392,8 @@ pub contract RPSGAME {
         self.PlayingBotPublicPath = /public/playingbot
         self.MatchStoragePath = /storage/match
         self.MatchPublicPath = /public/match
+        self.PlayingHumanStoragePath = /storage/playingbot
+        self.PlayingHumanPublicPath  = /public/playingbot
         self.idCount = 0
 	}
 

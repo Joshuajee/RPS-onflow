@@ -5,11 +5,11 @@ import PlayOptions from '@/components/game/PlayOptions'
 import Fight from '@/components/game/Fight'
 import { PLAYER_MOVE } from '@/libs/constants'
 import GameStatus from '@/components/game/GameStatus'
-import useGamePVEPlay from '@/hooks/useGamePVEPlay'
 import { useAuth } from '@/contexts/AuthContext'
 import ModalWrapper from '@/components/modals/ModalWrapper'
 import GameEnded from '@/components/modals/GameEnded'
 import { toast } from 'react-toastify'
+import useGameMultiplier from '@/hooks/useGameMultiplier'
 
 export default function PlayWithFriend() {
 
@@ -25,7 +25,7 @@ export default function PlayWithFriend() {
         play, fetchState, init, setOpponentMove,
         round, gameStatus, opponentMove, tokens,
         opponentWins, playerWins, gameWinner 
-    } = useGamePVEPlay(currentUser?.addr, loadProfile)
+    } = useGameMultiplier(currentUser?.addr, loadProfile)
 
 
     useEffect(() => {
@@ -65,7 +65,6 @@ export default function PlayWithFriend() {
         await fetchState()
         setOpen(false)
     }
-
 
     return (
         <>

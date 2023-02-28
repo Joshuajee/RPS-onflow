@@ -26,6 +26,11 @@ export default function Home() {
     router.push(PLAY_ROUTES.PLAY_PVE)
   }
 
+  const PVP = () => {
+    if (pleaseConnect()) return
+    router.push(LINKS.CREATE_MATCH)
+  }
+
   const pleaseConnect = () => {
     if (currentUser?.loggedIn) {
       if (!userProfile) {
@@ -59,14 +64,8 @@ export default function Home() {
 
           <GameButton onClick={PVE} color={'red'}>Play With Flow</GameButton>
 
-          {/* <GameButton onClick={() => router.push(LINKS.ACHIEVEMENTS)} color='yellow'>Achiements</GameButton> */}
+          <GameButton onClick={PVP} color='yellow'>Play With Friends</GameButton>
 
-          {/* <GameButton onClick={() => router.push(LINKS.LEADERBOARD)} color='blue'>LeaderBoard</GameButton> */}
-
-          <GameButton onClick={() => router.push(LINKS.CREATE_MATCH)} color='yellow'>Play With Friends</GameButton>
-
-          {/* <GameButton onClick={() => router.push(LINKS.MATCH_HISTORY)} color='yellow'>Match History</GameButton> */}
-          
         </div>
 
       </Layout>

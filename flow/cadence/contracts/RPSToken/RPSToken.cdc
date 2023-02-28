@@ -248,14 +248,22 @@ pub contract RPSToken: FungibleToken {
     }
 
     // create match 
-    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @RPSGAME.Match {
+    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): UInt64 {
         
-        //let tokens = UFix64(unsafeRandom() % 15)
+        let challenge <- self.account.load<@RPSGAME.Challenge>(from: RPSGAME.AdminMatchStoragePath) 
+            ?? panic("Can't get challenge")
 
         let match <- RPSGAME.createMatch(host: host, hostStake: hostStake, opponentStake: opponentStake)
 
-        return  <- match
+        let id = match.id
+        
+        challenge.addGame(game: <- match)
+
+        self.account.save(<- challenge, to: RPSGAME.AdminMatchStoragePath)
+
+        return  id
     }
+
 
     pub fun claimRewardGamePVE(game: @RPSGAME.GamePVE, account: AuthAccount): @RPSGAME.GamePVE {
 
@@ -278,8 +286,6 @@ pub contract RPSToken: FungibleToken {
         return <- game
 
     }
-
-    
 
     init() {
         self.totalSupply = 1000.0

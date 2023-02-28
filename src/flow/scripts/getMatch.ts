@@ -9,12 +9,12 @@ const getMatch = async (account: string | undefined) => {
         cadence: `
         import RPSGAME from ${contract}
 
-        pub fun main(address: Address): &RPSGAME.Match {
+        pub fun main(address: Address): &RPSGAME.PVPGame {
 
             let gameAccount = getAccount(address)
            
             // Get the public capability from the public path of the owner's account
-            let gameCapability = gameAccount.getCapability<&RPSGAME.Match>(RPSGAME.MatchPublicPath)
+            let gameCapability = gameAccount.getCapability<&RPSGAME.PVPGame>(RPSGAME.MatchPublicPath)
             // borrow a reference for the capability
             log(gameCapability)
             let gameReference = gameCapability.borrow() ?? panic("Could not borrow a reference to the games capability")

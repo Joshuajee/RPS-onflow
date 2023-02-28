@@ -54,19 +54,19 @@ export default function CreateMatch() {
 
   const fetchMatch = useCallback(async() => {
     try {
-      const match = await getMatch(currentUser?.addr)
+      const match = await getMatch(addr as string)
       setMatch(match)
     } catch (e) {
       console.error(e)
     }
-  }, [currentUser?.addr])
+  }, [addr])
 
 
   const join = async () => {
     try {
-      await joinMatch(addr as string, currentUser?.addr, 0, () => console.log("dd"))
+      await joinMatch(Number(id), addr as string, currentUser?.addr, 0, () => console.log("dd"))
     } catch (e) {
-
+      toast.error("Error! joining match")
     }
 
   }
@@ -114,12 +114,6 @@ export default function CreateMatch() {
     fetchMatch()
   }, [fetchMatch])
 
-
-  // fcl.events(event).subscribe((eventData: any) => {
-  //   alert("-----------")
-  //   console.log(eventData);
-  // });
-
   useEffect(() => {
     const interval = setInterval(() => {
       fetchMatch()
@@ -132,7 +126,6 @@ export default function CreateMatch() {
       router.push(`${PLAY_ROUTES.PLAY}/${addr}/${id}`)
     }
   }, [router, match?.opponentJoined, addr, id])
-
 
   return (
     <Layout>

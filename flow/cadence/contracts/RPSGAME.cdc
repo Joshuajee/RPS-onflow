@@ -16,6 +16,8 @@ pub contract RPSGAME {
     pub let MatchPublicPath: PublicPath
     pub let PlayingHumanStoragePath: StoragePath
     pub let PlayingHumanPublicPath: PublicPath
+    pub let AdminMatchStoragePath: StoragePath
+    pub let AdminMatchPublicPath: PublicPath
 
     pub var idCount: UInt64
 
@@ -300,6 +302,8 @@ pub contract RPSGAME {
             }
 
             self.playerMove = move
+
+            self.judge()
         }
 
         pub fun opponentPlay (move: GameMove) {
@@ -311,8 +315,125 @@ pub contract RPSGAME {
 
             self.opponentMove = move
 
+            self.judge()
+
         }
 
+        pub fun judge () {
+
+            let playerMove = self.playerMove
+            let opponentMove = self.opponentMove
+
+            if (playerMove != GameMove.none && opponentMove != GameMove.none) {
+
+                let gameStatus = self.rules(playerMove: playerMove, opponentMove: opponentMove)
+
+                // recording moves
+                self.playerMoves.append(playerMove)
+                self.opponentMoves.append(opponentMove)
+
+                // resetting move
+                self.playerMove = GameMove.none
+                self.opponentMove = GameMove.none
+
+                self.rounds = self.rounds + 1
+                
+                switch (gameStatus) {
+                    case GameState.won:
+                        self.battleResults.append(GameState.won)
+                        if (self.wins >= 2) {
+                            self.gameStatus = FinalGameStatus.won
+                        }
+                        break
+                    case GameState.lost:
+                        self.loses = self.loses + 1
+                        self.battleResults.append(GameState.lost)
+                        if (self.loses >= 2) {
+                            self.gameStatus = FinalGameStatus.lost
+                        }
+                        break
+                    default:
+                        self.battleResults.append(GameState.draw)
+                        log("draw")
+                
+                }
+
+            }
+
+        }
+
+        // rock logic
+        pub fun rock (move: GameMove): GameState {
+            switch (move) {
+                case GameMove.rock:
+                    return GameState.draw
+                case GameMove.paper:
+                    return GameState.lost
+                case GameMove.scissors:
+                    return GameState.won
+                default:
+                    return  GameState.draw
+            }
+        }
+
+        // paper logic
+        pub fun paper(move: GameMove): GameState {
+            switch (move) {
+                case GameMove.rock:
+                    return GameState.won
+                case GameMove.paper:
+                    return GameState.draw
+                case GameMove.scissors:
+                    return GameState.lost
+                default:
+                    return GameState.draw
+            }
+        }
+
+        // scissors logic
+        pub fun scissors(move: GameMove): GameState {
+            switch (move) {
+                case GameMove.rock:
+                    return GameState.lost
+                case GameMove.paper:
+                    return GameState.won
+                case GameMove.scissors:
+                    return GameState.draw
+                default:
+                    return GameState.draw
+            }
+        }
+
+        // rules logic
+        pub fun rules (playerMove: GameMove, opponentMove: GameMove): GameState {
+            switch (playerMove) {
+                case GameMove.rock:
+                    return self.rock(move:opponentMove)
+                case GameMove.paper:
+                    return self.paper(move: opponentMove)
+                case GameMove.scissors:
+                    return self.scissors(move: opponentMove)
+                default:
+                    return GameState.draw
+            }
+        }
+
+        pub fun getMoveFromInt(move: Int): GameMove {
+            switch(move) {
+                case 0:
+                    return  GameMove.rock
+                case 1:
+                    return  GameMove.paper
+                case 2:
+                    return  GameMove.scissors
+                default:
+                    return  GameMove.rock
+            }
+        }
+
+        pub fun endGame () {
+            self.claimed = false
+        }
 
     }
 
@@ -354,6 +475,59 @@ pub contract RPSGAME {
 
     }
 
+    pub resource PVPGame {
+        pub var matchId: UInt64
+        pub var opponentJoined: Bool
+        pub var host: Address
+        pub var opponent: Address
+        
+        init(matchId: UInt64, host: Address) {
+            self.matchId = matchId
+            self.opponentJoined = false
+            self.host = host
+            self.opponent = host
+        }
+
+        pub fun join (match: &Match, opponent: Address, stake: UFix64) {
+            self.opponent = opponent
+            self.opponentJoined = true
+            match.join(opponent: opponent, stake: stake)
+        }
+    }
+
+
+    pub resource Challenge {
+
+        pub var games: @{UInt64: Match}
+
+        init () {
+            self.games <- {}
+        }
+
+        pub fun idExists(id: UInt64): Bool {
+            return self.games[id] != nil
+        }
+
+        pub fun getIDs(): [UInt64] {
+            return self.games.keys
+        }
+
+        // add game to games collection
+        pub fun addGame(game: @Match) {
+            self.games[game.id] <-! game
+        }
+
+        // return game collection
+        pub fun returnGame(id: UInt64): &Match? {
+            return &self.games[id] as &Match?
+        }
+
+        destroy() {
+            destroy self.games
+        }
+
+    }
+
 
     // creates a new empty Game resource and returns it
     pub fun createEmptyGame(name: String): @Games {
@@ -381,11 +555,16 @@ pub contract RPSGAME {
         return <-newGame
     }
 
+    pub fun createGameHost(matchId: UInt64, host: Address): @PVPGame {
+        return  <- create PVPGame(matchId: matchId, host: host)
+    }
+
     pub fun dynamicStoragePath (path: StoragePath): StoragePath {
         return path
     }
 
     init() {
+
         self.GamesStoragePath = /storage/games
         self.GamesPublicPath = /public/games
         self.PlayingBotStoragePath = /storage/playingbot
@@ -394,7 +573,18 @@ pub contract RPSGAME {
         self.MatchPublicPath = /public/match
         self.PlayingHumanStoragePath = /storage/playingbot
         self.PlayingHumanPublicPath  = /public/playingbot
+        self.AdminMatchStoragePath = /storage/admin_match
+        self.AdminMatchPublicPath = /public/admin_match
+
+
         self.idCount = 0
+
+        let challenge <- create Challenge()
+
+        self.account.save(<- challenge, to: self.AdminMatchStoragePath)
+
+        self.account.link<&Challenge>(self.AdminMatchPublicPath, target: self.AdminMatchStoragePath)
+
 	}
 
 }

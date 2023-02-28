@@ -1,14 +1,12 @@
 import Head from 'next/head'
 import Layout from '@/components/ui/utils/Layout'
-import Container from '@/components/ui/utils/Container'
 import PlayOptions from '@/components/game/PlayOptions'
 import { useEffect, useState } from 'react'
 import useQuickPlay from '@/hooks/useQuickPlay'
-import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants'
-import { gameStatusStr } from '@/libs/utils'
+import { PLAYER_MOVE } from '@/libs/constants'
 import GameStatus from '@/components/game/GameStatus'
 import Fight from '@/components/game/Fight'
-import { toast } from 'react-toastify'
+
 
 export default function QuickGame() {
 
@@ -18,11 +16,9 @@ export default function QuickGame() {
 
     const  { play, round, gameStatus, opponentMove, opponentWins, playerWins, gameWinner } = useQuickPlay()
 
-    useEffect(() => {
-        if (playerMove !== null && !showFight) {
-            play(playerMove)
-        }
-    }, [playerMove, showFight, gameWinner, play])
+    const playGame = () => {
+        play(playerMove as PLAYER_MOVE)
+    }
 
     const hide = () => {
         setShowFight(false)
@@ -43,6 +39,8 @@ export default function QuickGame() {
     const fighingMode = (
         <Fight playerMove={playerMove as PLAYER_MOVE}  opponentMove={opponentMove}  gameStatus={gameStatus} hide={hide} />
     )
+
+    console.log(round)
 
     return (
         <>

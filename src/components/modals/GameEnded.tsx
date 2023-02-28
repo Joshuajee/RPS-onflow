@@ -8,23 +8,11 @@ import RPSToken from "../ui/RPSToken";
 interface IProps {
     gameWinner: FINAL_GAME_STATUS
     reward?: number
-    init: () => void;
     handleClose: () => void;
+    action: () => void; 
 }
 
-const GameEnded = ({gameWinner, reward, handleClose, init} : IProps) => {
-
-    const newGame = async() => {
-    
-        try {
-            await endGamePVE(handleClose)
-            toast.success("New Game Created")
-            init()
-        } catch (e) {
-            console.error(e)
-            toast.error("Error creating profile")
-        }
-    }
+const GameEnded = ({gameWinner, reward, handleClose, action } : IProps) => {
 
     const lottie = useCallback(() => {
         switch(gameWinner) {
@@ -66,8 +54,8 @@ const GameEnded = ({gameWinner, reward, handleClose, init} : IProps) => {
             </div>
 
 
-            <button onClick={newGame} className={`bg-blue-900 hover:bg-blue-800 py-3 text-white rounded-lg`}>
-                { (reward && gameWinner === FINAL_GAME_STATUS.PLAYER_WON) ? <div className="flex justify-center">Claim Reward <RPSToken amount={reward} /> </div>   : "New Game" }
+            <button onClick={action} className={`bg-blue-900 hover:bg-blue-800 py-3 text-white rounded-lg`}>
+                { (reward && gameWinner === FINAL_GAME_STATUS.PLAYER_WON) ? <div className="flex justify-center">Claim Reward <RPSToken amount={reward} /> </div>   : "End Game" }
             </button>
 
         </div>

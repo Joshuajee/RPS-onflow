@@ -27,15 +27,13 @@ const createProfile = async (name: string, callBack: () => void) => {
   
           log("Capability created")
 
+          // Return early if the account already stores a ExampleToken Vault
           if acct.borrow<&RPSToken.Vault>(from: RPSToken.VaultStoragePath) != nil {
             return
           }
           
           // Create a new RPSToken Vault and put it in storage
-          acct.save(
-            <-RPSToken.createEmptyVault(),
-            to: RPSToken.VaultStoragePath
-          )
+          acct.save(<-RPSToken.createEmptyVault(), to: RPSToken.VaultStoragePath)
   
           // Create a public capability to the Vault that only exposes
           // the deposit function through the Receiver interface
@@ -57,7 +55,7 @@ const createProfile = async (name: string, callBack: () => void) => {
     payer: fcl.authz,
     proposer: fcl.authz,
     authorizations: [fcl.authz],
-    limit: 50,
+    limit: 500,
   });
 
   fcl.tx(transactionId).subscribe((res: any) => {

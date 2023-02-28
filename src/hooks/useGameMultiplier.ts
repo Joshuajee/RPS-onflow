@@ -1,12 +1,12 @@
-import getActiveGamePVE from '@/flow/scripts/getActiveGamePVE';
-import newGameWithFlow from '@/flow/transactions/newGameWithFlow';
-import playGamePVE from '@/flow/transactions/playGamePVE';
+import getMultiplierGame from '@/flow/scripts/getMultiplierGame';
+import playGameMultiplier from '@/flow/transactions/playGameMultiplier';
 import { FINAL_GAME_STATUS, GAME_STATUS, PLAYER_MOVE } from '@/libs/constants';
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 
-const useGameMultiplier = (address: string, loadProfile: () => void) => {
+const useGameMultiplier = (address: string, id: number, addr: string, loadProfile: () => void) => {
 
-    const [newGame, setNewGame] = useState(true)
+    const player = address === addr
 
     const [round, setRound] = useState(0)
     const [gameStatus, setGameStatus] = useState(GAME_STATUS.START)
@@ -17,7 +17,8 @@ const useGameMultiplier = (address: string, loadProfile: () => void) => {
 
     const [gameWinner, setGameWinner] = useState(FINAL_GAME_STATUS.PLAYING)
 
-
+    const [host, setHost] = useState(null)
+    
     const init = useCallback(() => {
         loadProfile()
         setRound(0)
@@ -26,9 +27,7 @@ const useGameMultiplier = (address: string, loadProfile: () => void) => {
         setOpponentWins(0)
         setOpponentMove(PLAYER_MOVE.NONE)
         setGameWinner(FINAL_GAME_STATUS.PLAYING)
-        setNewGame(true)
     }, [loadProfile])
-
 
     const fetchState = useCallback(async() => {
 
@@ -36,74 +35,78 @@ const useGameMultiplier = (address: string, loadProfile: () => void) => {
 
             try {
 
-                const getActiveGame = await getActiveGamePVE(address)
+                const getActiveGame = await getMultiplierGame(id)
 
                 if (!getActiveGame) {   
                     init()
                 } else {
+
+                    const playerMove = getActiveGame?.playerMoves[getActiveGame?.playerMoves.length - 1]?.rawValue 
                     
                     const opponentMove = getActiveGame?.opponentMoves[getActiveGame?.opponentMoves.length - 1]?.rawValue
                     
                     const battleResults = getActiveGame?.battleResults
                     const battleResult = battleResults[battleResults.length - 1]?.rawValue
 
+                    const host = getActiveGame?.host
 
                     setRound(getActiveGame?.rounds)
                     setGameStatus(battleResult)
-                    setPlayerWins(getActiveGame?.wins)
-                    setOpponentWins(getActiveGame?.loses)
-                    setOpponentMove(opponentMove)
-                    setGameWinner(getActiveGame?.gameStatus?.rawValue)
-                    setTokens(getActiveGame?.tokens)
+                    setHost(host)
 
-                    setNewGame(false)
+                    if (host === address) {
+                        setPlayerWins(getActiveGame?.wins)
+                        setOpponentWins(getActiveGame?.loses)
+                        setOpponentMove(opponentMove)
+                        setGameWinner(getActiveGame?.gameStatus?.rawValue)
+                        setTokens(getActiveGame?.tokens)
+                    } else {
+                        setPlayerWins(getActiveGame?.loses)
+                        setOpponentWins(getActiveGame?.wins)
+                        setOpponentMove(playerMove)
+                        setGameWinner(getActiveGame?.gameStatus?.rawValue)
+                        setTokens(getActiveGame?.tokens)
+                    }
 
                 }
 
             } catch (e) {
                 console.error(e)
             }
-
             
         }
 
-    }, [address, init])
-
+    }, [address, id, init])
 
     const play = useCallback (async(move: PLAYER_MOVE) => {
-
-        if (newGame) {
-            try  {
-                await newGameWithFlow(move, fetchState)
-            } catch (e) {
-                console.error(e)
-            }
-        } else {
-            try  {
-                await playGamePVE(move, fetchState)
-            } catch (e) {
-                console.error(e)
-            }
+        try  {
+            await playGameMultiplier(id, move, player)
+        } catch (e) {
+            toast.error("Error recording your move")
+            console.error(e)
         }
-
-    }, [newGame, fetchState])
+    }, [id, player])
 
     useEffect(() => {  
         fetchState()
     }, [fetchState])
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            fetchState()
+        }, 5000)
+        return () => clearInterval(interval)
+    }, [fetchState])
+
+    useEffect(() => {
         if (playerWins >= 2) {
             setGameWinner(FINAL_GAME_STATUS.PLAYER_WON)
-            setNewGame(true)
         } else if (opponentWins >= 2 ) {
             setGameWinner(FINAL_GAME_STATUS.OPPONENT_WON)
-            setNewGame(true)
         } 
     }, [playerWins, opponentWins])
 
-
-    return { round, tokens, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState, init, setOpponentMove }
+    return { round, host, tokens, gameStatus, opponentMove, playerWins, opponentWins, gameWinner, play, fetchState, init, setOpponentMove }
 }
 
 

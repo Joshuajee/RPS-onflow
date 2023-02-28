@@ -2,6 +2,7 @@ import { GAME_STATUS, PLAYER_MOVE } from "./constants"
 
 
 export const rules = (playerMove: PLAYER_MOVE, opponentMove: PLAYER_MOVE) => {
+    console.log(" ----- ", playerMove, opponentMove)
     switch (playerMove) {
         case PLAYER_MOVE.ROCK:
             return rock(opponentMove)

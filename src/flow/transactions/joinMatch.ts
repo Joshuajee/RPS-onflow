@@ -1,8 +1,7 @@
-import { GamePVPDetails } from "@/libs/interfaces";
 import { contract } from "@/libs/utils";
 import * as fcl from "@onflow/fcl";
 
-const joinMatch = async (address: string, player: string, stake: number, callBack: () => void) => {
+const joinMatch = async (id: number, address: string, player: string, stake: number, callBack: () => void) => {
 
   const transactionId = await fcl.mutate({
     cadence: `
@@ -14,21 +13,23 @@ const joinMatch = async (address: string, player: string, stake: number, callBac
           prepare(acct: AuthAccount) {
 
             let gameAccount = getAccount(${address})
+            let challengeAccount = getAccount(${contract})
            
             // Get the public capability from the public path of the owner's account
-            let gameCapability = gameAccount.getCapability<&RPSGAME.Match>(RPSGAME.MatchPublicPath)
+            let gameCapability = gameAccount.getCapability<&RPSGAME.PVPGame>(RPSGAME.MatchPublicPath)
             // borrow a reference for the capability
             log(gameCapability)
             let gameReference = gameCapability.borrow() ?? panic("Could not borrow a reference to the games capability")
 
-            gameReference.join(opponent: ${player}, stake: ${stake.toFixed(4)})
+            let challengeCapability = gameAccount.getCapability<&RPSGAME.Challenge>(RPSGAME.AdminMatchPublicPath)
 
-            // create a public capability for the Game PVE
-            let capability = acct.link<&RPSGAME.Match>(RPSGAME.MatchPublicPath, target: RPSGAME.MatchStoragePath)   
+            let challengeReference = challengeCapability.borrow() ?? panic("Could not borrow a reference to the games capability")
+
+            let match = challengeReference.returnGame(id: ${id}) ?? panic("Match not found")
+
+            gameReference.join(match: match, opponent: ${player}, stake: ${stake.toFixed(4)})
 
             log("Joined Match Created Successfully")
-
-            
 
           }
         

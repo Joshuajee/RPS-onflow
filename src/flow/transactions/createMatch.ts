@@ -4,32 +4,31 @@ import * as fcl from "@onflow/fcl";
 
 const createMatch = async (details: GamePVPDetails, callBack: () => void) => {
 
-  const { host, opponent, hostStake, opponentStake } = details
+  const { host, hostStake } = details
 
   const transactionId = await fcl.mutate({
     cadence: `
-        import RPSGAME from ${contract}
-        import RPSToken from ${contract}
+      import RPSGAME from ${contract}
+      import RPSToken from ${contract}
 
-        transaction {
+      transaction {
 
-          prepare(acct: AuthAccount) {
-  
-            let match <- RPSToken.createMatch(host: ${host}, hostStake: ${hostStake.toFixed(4)}, opponentStake: ${opponentStake.toFixed(4)})
+        prepare(acct: AuthAccount) {
 
-            acct.save(<- match, to: RPSGAME.MatchStoragePath)
+          let id = RPSToken.createMatch(host: ${host}, stake: ${hostStake.toFixed(4)})
 
-            // create a public capability for the Game PVE
-            let capability = acct.link<&RPSGAME.Match>(RPSGAME.MatchPublicPath, target: RPSGAME.MatchStoragePath)   
+          let match <- RPSGAME.createGameHost(matchId: id, host: ${host})
 
-            log("Match Created Successfully")
+          acct.save(<- match, to: RPSGAME.MatchStoragePath)
 
-            let game <- RPSGAME.createMatch(host: ${host}, hostStake: ${hostStake.toFixed(4)}, opponentStake: ${opponentStake.toFixed(4)})
+          // create a public capability for the Game PVE
+          let capability = acct.link<&RPSGAME.PVPGame>(RPSGAME.MatchPublicPath, target: RPSGAME.MatchStoragePath)   
 
+          log("Match Created Successfully")
 
-          }
-        
         }
+      
+      }
     `,
     payer: fcl.authz,
     proposer: fcl.authz,

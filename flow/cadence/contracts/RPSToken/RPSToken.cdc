@@ -234,6 +234,80 @@ pub contract RPSToken: FungibleToken {
         }
     }
 
+    pub resource interface GameAccountPublic {
+        pub fun addAccount(gameAccount: @GameAccount) 
+        pub fun fundValue(id: UInt64) 
+
+    }
+
+    pub resource GameAccounts {
+
+        pub var gameAccounts: @{UInt64: GameAccount}
+
+        init () {
+            self.gameAccounts <- {}
+        }
+
+        pub fun idExists(id: UInt64): Bool {
+            return self.gameAccounts[id] != nil
+        }
+
+        pub fun getIDs(): [UInt64] {
+            return self.gameAccounts.keys
+        }
+
+        // add game to games collection
+        pub fun addAccount(gameAccount: @GameAccount) {
+            self.gameAccounts[gameAccount.matchId] <-! gameAccount
+        }
+
+        pub fun fundValue(id: UInt64) {
+            let account = &self.gameAccounts[id] as &GameAccount?
+
+
+
+        }
+
+        destroy() {
+            destroy self.gameAccounts
+        }
+
+    }
+
+    pub resource GameAccount {
+
+        pub var matchId: UInt64
+        pub var opponentJoined: Bool
+        pub var host: Address
+        pub var opponent: Address
+
+        pub let vault: @Vault
+        
+        init(matchId: UInt64, host: Address, tokens: @Vault) {
+            self.matchId = matchId
+            self.opponentJoined = false
+            self.host = host
+            self.opponent = host
+            self.vault <-create Vault(balance: 0.0)
+            self.vault.deposit(from: <- tokens)
+        }
+
+        pub fun join (opponent: Address, tokens: @Vault) {
+            pre {
+                tokens.balance == self.vault.balance: "Funds not equal"
+            }
+
+            self.opponent = opponent
+            self.opponentJoined = true
+            self.vault.deposit(from: <- tokens)
+        }
+
+        destroy () {
+            destroy self.vault
+        }
+
+    }
+
 
     // create game
     pub fun newGamePVE(move: RPSGAME.GameMove): @RPSGAME.GamePVE {
@@ -248,14 +322,52 @@ pub contract RPSToken: FungibleToken {
     }
 
     // create match 
-    pub fun createMatch(host: Address, hostStake: UFix64, opponentStake: UFix64): @RPSGAME.Match {
+    pub fun createMatch(host: Address, stake: UFix64): UInt64 {
+
         
-        //let tokens = UFix64(unsafeRandom() % 15)
+        let challenge <- self.account.load<@RPSGAME.Challenge>(from: RPSGAME.AdminMatchStoragePath) 
+            ?? panic("Can't get challenge")
 
-        let match <- RPSGAME.createMatch(host: host, hostStake: hostStake, opponentStake: opponentStake)
+        let match <- RPSGAME.createMatch(host: host, stake: stake)
 
-        return  <- match
+        let id = match.id
+        
+        challenge.addGame(game: <- match)
+
+        self.account.save(<- challenge, to: RPSGAME.AdminMatchStoragePath)
+
+        return  id
     }
+
+    // // create match 
+    // pub fun createMatchStake(host: Address, stake: UFix64, tokens: @RPSToken.Vault): UInt64 {
+
+    //     pre {
+    //         stake == tokens.balance: "Stake Must be equal to deposited tokens"
+    //     }
+        
+    //     let challenge <- self.account.load<@RPSGAME.Challenge>(from: RPSGAME.AdminMatchStoragePath) 
+    //         ?? panic("Can't get challenge")
+
+    //     let match <- RPSGAME.createMatch(host: host, stake: stake)
+
+    //     let id = match.id
+        
+    //     challenge.addGame(game: <- match)
+
+    //     self.account.save(<- challenge, to: RPSGAME.AdminMatchStoragePath)
+
+    //     let gameAccount <- create GameAccount(matchId: id, host: host, tokens: <-tokens)
+
+    //     let account = getAccount(self.account.address)
+
+    //     let GameAcct = account.getCapability<&{GameAccountPublic}>(self.VaultPublicPath)
+
+    //     GameAcct.borrow()
+
+    //     return  id
+    // }
+
 
     pub fun claimRewardGamePVE(game: @RPSGAME.GamePVE, account: AuthAccount): @RPSGAME.GamePVE {
 
@@ -279,10 +391,8 @@ pub contract RPSToken: FungibleToken {
 
     }
 
-    
-
     init() {
-        self.totalSupply = 1000.0
+        self.totalSupply = 10000.0
         self.VaultStoragePath = /storage/RPSTokenVault
         self.VaultPublicPath = /public/RPSTokenMetadata
         self.ReceiverPublicPath = /public/RPSTokenReceiver
@@ -308,6 +418,13 @@ pub contract RPSToken: FungibleToken {
 
         let admin <- create Administrator()
         self.account.save(<-admin, to: self.AdminStoragePath)
+
+        // store games account
+        // self.account.save(<- create GameAccounts(), to: self.AdminStoragePath)
+        // self.account.link<&{GameAccountPublic}>(
+        //     self.VaultPublicPath,
+        //     target: self.VaultStoragePath
+        // )
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: self.totalSupply)

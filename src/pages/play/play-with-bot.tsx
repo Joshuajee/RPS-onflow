@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import ModalWrapper from '@/components/modals/ModalWrapper'
 import GameEnded from '@/components/modals/GameEnded'
 import { toast } from 'react-toastify'
+import endGamePVE from '@/flow/transactions/endGamePVE'
+import { Router, useRouter } from 'next/router'
 
 export default function PlayWithBot() {
 
@@ -21,12 +23,25 @@ export default function PlayWithBot() {
 
     const [showFight, setShowFight] = useState(false)
 
+    const router = useRouter()
+
     const  { 
         play, fetchState, init, setOpponentMove,
         round, gameStatus, opponentMove, tokens,
         opponentWins, playerWins, gameWinner 
     } = useGamePVEPlay(currentUser?.addr, loadProfile)
 
+
+    const newGame = async() => {
+        try {
+            await endGamePVE(handleClose)
+            toast.success("New Game Created")
+            init()
+        } catch (e) {
+            console.error(e)
+            toast.error("Error creating profile")
+        }
+    }
 
     useEffect(() => {
         if (gameWinner != 0) {
@@ -84,8 +99,8 @@ export default function PlayWithBot() {
                 </div>
             </Layout>
 
-            <ModalWrapper title={"Game Ended"} open={open && !showFight} handleClose={() => toast.error("Cannot close, please create new game")}>
-                <GameEnded handleClose={handleClose} init={init} gameWinner={gameWinner} reward={tokens}/>
+            <ModalWrapper title={"Game Ended"} open={open && !showFight} handleClose={() => router.push("/")}>
+                <GameEnded handleClose={handleClose} gameWinner={gameWinner} reward={tokens} action={newGame} />
             </ModalWrapper>
 
         </>

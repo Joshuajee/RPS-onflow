@@ -24,6 +24,9 @@ const createMatch = async (details: GamePVPDetails, callBack: () => void) => {
 
             log("Match Created Successfully")
 
+            let game <- RPSGAME.createMatch(host: ${host}, hostStake: ${hostStake.toFixed(4)}, opponentStake: ${opponentStake.toFixed(4)})
+
+
           }
         
         }

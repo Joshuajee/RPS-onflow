@@ -1,4 +1,13 @@
 {
+	"contracts": {
+		"FungibleToken": "./flow/cadence/contracts/RPSToken/FungibleToken.cdc",
+		"FungibleTokenMetadataViews": "./flow/cadence/contracts/RPSToken/FungibleTokenMetadataViews.cdc",
+		"MetadataViews": "./flow/cadence/contracts/RPSToken/utility/MetadataViews.cdc",
+		"NonFungibleToken": "./flow/cadence/contracts/RPSToken/utility/NonFungibleToken.cdc",
+		"RPSGAME": "./flow/cadence/contracts/RPSGAME.cdc",
+		"RPSToken": "./flow/cadence/contracts/RPSToken/RPSToken.cdc",
+		"RPSTokenInterface": "./flow/cadence/contracts/RPSToken/RPSTokenInterface.cdc"
+	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
@@ -9,22 +18,35 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "ca99975c770c6096a7b14daadca001bdc58b2d2fe9a51dd2f1b6af974d22f854"
+		},
+		"joe": {
+			"address": "bc72433b9f3a1e25",
+			"key": {
+				"type": "file",
+				"location": "joe.pkey"
+			}
 		}
-	},
-	"contracts": {
-		"FungibleToken": "./flow/cadence/contracts/RPSToken/FungibleToken.cdc",
-		"NonFungibleToken": "./flow/cadence/contracts/RPSToken/utility/NonFungibleToken.cdc", 
-		"MetadataViews": "./flow/cadence/contracts/RPSToken/utility/MetadataViews.cdc",
-		"FungibleTokenMetadataViews": "./flow/cadence/contracts/RPSToken/FungibleTokenMetadataViews.cdc",
-		"RPSTokenInterface": "./flow/cadence/contracts/RPSToken/RPSTokenInterface.cdc",
-		"RPSGAME": "./flow/cadence/contracts/RPSGAME.cdc",
-		"RPSToken": "./flow/cadence/contracts/RPSToken/RPSToken.cdc"
 	},
 	"deployments": {
 		"emulator": {
-			"emulator-account": ["RPSGAME", "FungibleToken", "NonFungibleToken", "MetadataViews", "FungibleTokenMetadataViews", "RPSToken"]
+			"emulator-account": [
+				"RPSGAME",
+				"FungibleToken",
+				"NonFungibleToken",
+				"MetadataViews",
+				"FungibleTokenMetadataViews",
+				"RPSToken"
+			]
+		},
+		"testnet": {
+			"joe": [
+				"RPSGAME",
+				"FungibleToken",
+				"NonFungibleToken",
+				"MetadataViews",
+				"FungibleTokenMetadataViews",
+				"RPSToken"
+			]
 		}
 	}
-
 }
- 
